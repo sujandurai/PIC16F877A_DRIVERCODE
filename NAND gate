@@ -1,0 +1,67 @@
+#include <xc.inc>
+
+; =============================
+; CONFIGURATION BITS
+; =============================
+CONFIG  FOSC  = HS
+CONFIG  WDTE  = OFF
+CONFIG  PWRTE = OFF
+CONFIG  BOREN = OFF
+CONFIG  LVP   = OFF
+CONFIG  CPD   = OFF
+CONFIG  WRT   = OFF
+CONFIG  CP    = OFF
+
+; =============================
+; RESET VECTOR
+; =============================
+psect RESET_VECT, class=CODE, delta=2
+RESET_VECT:++
+    
+    goto setup
+
+; =============================
+; INTERRUPT VECTOR
+; =============================
+psect INT_VECT, class=CODE, delta=2
+INT_VECT:
+    retfie
+
+; =============================
+; VARIABLE DEFINITIONS (HEX)
+; =============================
+COUNT1  EQU  0x20
+COUNT2  EQU  0x21
+COUNT3  EQU  0x22
+
+; =============================
+; MAIN SETUP
+; =============================
+setup:
+    bsf STATUS, 0x05       ; Select Bank1
+    movlw 0x00
+    movwf TRISB            ; PORTB = output
+    movlw 0xff
+    movwf TRISC 
+    bcf STATUS, 0x05       ; Back to Bank0
+    
+ main:
+    BTFSS PORTC,1 
+    GOTO LED
+    GOTO LOOP1
+   
+    LOOP1:
+    BTFSS PORTC,2
+    GOTO LED
+    GOTO LEDOFF
+    
+    LED:
+    BSF PORTB,1
+    GOTO main
+
+    LEDOFF:
+    BCF PORTB,1
+    GOTO main
+
+
+
