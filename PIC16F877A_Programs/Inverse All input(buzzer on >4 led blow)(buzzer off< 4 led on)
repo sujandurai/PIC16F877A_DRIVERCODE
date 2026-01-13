@@ -1,0 +1,82 @@
+
+#include <xc.inc>
+
+; =============================
+; CONFIGURATION BITS
+; =============================
+CONFIG  FOSC  = HS
+CONFIG  WDTE  = OFF
+CONFIG  PWRTE = OFF
+CONFIG  BOREN = OFF
+CONFIG  LVP   = OFF
+CONFIG  CPD   = OFF
+CONFIG  WRT   = OFF
+CONFIG  CP    = OFF
+
+; =============================
+; RESET VECTOR
+; =============================
+psect RESET_VECT, class=CODE, delta=2
+RESET_VECT:
+    goto setup
+
+; =============================
+; INTERRUPT VECTOR
+; =============================
+psect INT_VECT, class=CODE, delta=2
+INT_VECT:
+    retfie
+
+; =============================
+; VARIABLE DEFINITIONS (HEX)
+; =============================
+COUNT  EQU  0x20
+TEMP   EQU  0x21
+
+; =============================
+; MAIN SETUP
+; =============================
+setup:
+    bsf STATUS, 5     
+    movlw 0x3F             
+    movwf TRISB            
+    movlw 0x00            
+    movwf TRISC 
+    bcf STATUS, 5      
+    
+MAIN:
+    clrf COUNT             
+    
+    
+    movf PORTB, W          
+    xorlw 0x3F             
+    movwf TEMP            
+    
+    
+    btfsc TEMP, 0
+    incf COUNT, F
+    btfsc TEMP, 1
+    incf COUNT, F
+    btfsc TEMP, 2
+    incf COUNT, F
+    btfsc TEMP, 3
+    incf COUNT, F
+    btfsc TEMP, 4
+    incf COUNT, F
+    btfsc TEMP, 5
+    incf COUNT, F
+    
+    movlw 0x05
+    subwf COUNT, W         
+    btfsc STATUS, 0
+    
+    goto LOOP1
+    goto LOOP2
+
+LOOP1:
+    bsf PORTC, 0         
+    goto MAIN
+
+LOOP2:
+    bcf PORTC, 0          
+    goto MAIN
