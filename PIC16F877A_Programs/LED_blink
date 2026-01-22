@@ -1,0 +1,78 @@
+
+#include <xc.inc>
+
+; =============================
+; CONFIGURATION BITS
+; =============================
+CONFIG  FOSC  = HS
+CONFIG  WDTE  = OFF
+CONFIG  PWRTE = OFF
+CONFIG  BOREN = OFF
+CONFIG  LVP   = OFF
+CONFIG  CPD   = OFF
+CONFIG  WRT   = OFF
+CONFIG  CP    = OFF
+
+; =============================
+; RESET VECTOR
+; =============================
+psect RESET_VECT, class=CODE, delta=2
+RESET_VECT:
+    goto setup
+
+; =============================
+; INTERRUPT VECTOR
+; =============================
+psect INT_VECT, class=CODE, delta=2
+INT_VECT:
+    retfie
+
+; =============================
+; VARIABLE DEFINITIONS (HEX)
+; =============================
+COUNT1  EQU  0x20
+COUNT2  EQU  0x21
+COUNT3  EQU  0x22
+
+; =============================
+; MAIN SETUP
+; =============================
+setup:
+    bsf STATUS, 0x05   ; Select Bank1
+    movlw 0x00
+    movwf TRISB            ; PORTB = output
+    bcf STATUS, 0x05    ; Back to Bank0
+    clrf PORTB             ; Clear PORTB initially
+
+; =============================
+; MAIN LOOP
+; =============================
+main:
+    movlw 0xFF             ; Turn ON all LEDs
+    movwf PORTB
+    call delay_1s          ; Wait ~2 seconds
+
+    movlw 0x00             ; Turn OFF all LEDs
+    movwf PORTB
+    call delay_1s          ; Wait ~2 seconds
+
+ delay_1s:
+    MOVLW 0x05            ; Outer loop (5 × inner loops ? 1 sec)
+    MOVWF COUNT3
+
+d3:                        ; Outer loop start
+    MOVLW 0xFA            ; Middle loop (250)
+    MOVWF COUNT2
+
+d2:                        ; Middle loop start
+    MOVLW 0xFF            ; Inner loop (255)
+    MOVWF COUNT1
+
+d1:                        ; Inner loop
+    DECFSZ COUNT1, F
+    GOTO d1
+    DECFSZ COUNT2, F
+    GOTO d2
+    DECFSZ COUNT3, F
+    GOTO d3
+    RETURN
