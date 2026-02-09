@@ -85,3 +85,77 @@ void downcounter(int a,port m)
             delay_s(1);
         }
 }
+void dport_counter( int x,port n) // count using 2 ports
+{
+      volatile unsigned char *t,*p;
+      unsigned int digit_1=0;
+      unsigned int digit_2=0;
+      unsigned int digit_3=0;
+      unsigned int digit_4=0;
+      
+       t = tris[n];
+       p = port_s[n];
+       *t =0x00;
+      
+    for(unsigned int i=0;i<x;i++)
+    {
+        digit_1=i%10;
+        digit_2=(i/10)%10;
+        digit_3=(i/100)%10;
+        digit_4=(i/1000)%10;
+        
+        *p=0x01;
+     char m=(unsigned char)digit_1 +'0';
+       seven_segment_1(m);
+       delay_s(1);
+       
+        
+         *p=0x02;
+     char n=(unsigned char)digit_2+'0';
+        seven_segment_1(n);
+         delay_s(1);
+         
+           *p=0x03;
+     char o=(unsigned char)digit_3+'0';
+        seven_segment_1(o);
+        delay_s(1);
+        
+          *p=0x0F;
+     char p=(unsigned char)digit_4+'0';
+        seven_segment_1(p);
+          delay_s(1);
+          
+    }
+}
+   
+void sport_counter(unsigned int x)  // count using single port
+{
+    TRISC=0x00;
+      unsigned int digit_1=0;
+      unsigned int digit_2=0;
+      unsigned int digit_3=0;
+      unsigned int digit_4=0;
+    for(int i=0;i<x;i++)
+    {
+        digit_1=i%10;
+        digit_2=(i/10)%10;
+        digit_3=(i/100)%10;
+        digit_4=(i/1000)%10;
+
+    
+     delay_s(3);
+     char m=(unsigned char)digit_1+'0';
+        seven_segment_1(m);
+        delay_s(3);
+     char n=(unsigned char)digit_2+'0';
+        seven_segment_1(n);
+        delay_s(3);
+     char o=(unsigned char)digit_3+'0';
+        seven_segment_1(o);
+        delay_s(3);
+     char p=(unsigned char)digit_4+'0';
+        seven_segment_1(p);
+    }
+    
+    
+}
