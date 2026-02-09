@@ -1,82 +1,78 @@
-/******************** MACROS ********************/
-#define  SETIN(n,port)   (port |=  (1 << (n)))
-#define  SETOUT(n,port)  (port &= ~(1 << (n)))
-#define  SETHIGH(n,port) (port |=  (1 << (n)))
-#define  SETLOW(n,port)  (port &= ~(1 << (n)))
+#ifndef GPIO_H
+#define GPIO_H
 
-/******************** TYPEDEFS ********************/
+#include <xc.h>
+
+/* ================= BIT MACROS ================= */
+#define SETIN(n,port)      (port |=  (1 << (n)))
+#define SETOUT(n,port)     (port &= ~(1 << (n)))
+#define SETTOGGLE(n,port)  (port ^=  (1 << (n)))
+
+#define SETHIGH(n,port)    (port |=  (1 << (n)))
+#define SETLOW(n,port)     (port &= ~(1 << (n)))
+
+/* ================= PIN MODES ================= */
 typedef enum
 {
     OUTPUT = 0,
-    INPUT  = 1,
+    INPUT  = 1
 } pinmode_t;
 
+/* ================= PIN STATE ================= */
 typedef enum
 {
+    LOW = 0,
     HIGH = 1,
-    LOW  = 0
+    TOGGLE = 2
 } pinstate;
 
+/* ================= PORT ENUM ================= */
 typedef enum
 {
-    PORTA = 1,
-    PORTB = 2,
-    PORTC = 3,
-    PORTD = 4,
-    PORTE = 5
-} portmode;
+    PORT_A = 0,
+    PORT_B,
+    PORT_C,
+    PORT_D,
+    PORT_E
+} port_t;
 
-/******************** REGISTER DEFINITIONS ********************/
-#ifndef PORT
-#define PORTA (*(volatile unsigned char *)0x05)
-#define TRISA (*(volatile unsigned char *)0x85)
-#define ADCON1 (*(volatile unsigned char *)0x9F)
-#define STATUS (*(volatile unsigned char *)0x03)
+/* ================= REGISTER MAP ================= */
+#define PORTA_REG (*(volatile unsigned char *)0x05)
+#define TRISA_REG (*(volatile unsigned char *)0x85)
+#define PORTB_REG (*(volatile unsigned char *)0x06)
+#define TRISB_REG (*(volatile unsigned char *)0x86)
+#define PORTC_REG (*(volatile unsigned char *)0x07)
+#define TRISC_REG (*(volatile unsigned char *)0x87)
+#define PORTD_REG (*(volatile unsigned char *)0x08)
+#define TRISD_REG (*(volatile unsigned char *)0x88)
+#define PORTE_REG (*(volatile unsigned char *)0x09)
+#define TRISE_REG (*(volatile unsigned char *)0x89)
 
-#define PORTB (*(volatile unsigned char *)0x06)
-#define TRISB (*(volatile unsigned char *)0x86)
+#define ADCON1   (*(volatile unsigned char*)0x9F)
+#define OPTION_REG (*(volatile unsigned char *)0x81)
+#define INTCON   (*(volatile unsigned char *)0x0B)
+#define TMR0     (*(volatile unsigned char *)0x01)
+#define STATUS   (*(volatile unsigned char *)0x03)
 
-#define PORTC (*(volatile unsigned char *)0x07)
-#define TRISC (*(volatile unsigned char *)0x87)
+/* ================= POINTER ARRAYS ================= */
+extern volatile unsigned char *port_s[];
+extern volatile unsigned char *tris_s[];
 
-#define PORTD (*(volatile unsigned char *)0x08)
-#define TRISD (*(volatile unsigned char *)0x88)
+/* ================= GPIO FUNCTIONS ================= */
+void GPIO_pinmode(int pin, pinmode_t mode);
+void GPIO_pinwrite(int pin, pinstate state);
+int  GPIO_pinread(int pin);
+void GPIO_toggle(int pin);
 
-#define PORTE (*(volatile unsigned char *)0x09)
-#define TRISE (*(volatile unsigned char *)0x89)
+/* ================= DELAY ================= */
+void delay_s(unsigned int sec);
 
-#define OPTIONAL_REG (*(volatile unsigned char *)0x81)
-#define TMR0 (*(volatile unsigned char *)0x101)
-#define TMRO (*(volatile unsigned char *)0x01)
-#define INTCON (*(volatile unsigned char *)0x0B)
+/* ================= DISPLAY ================= */
+void seven_segment(unsigned char val, port_t p);
+void seven_segment_1(unsigned char val);
+
+/* ================= COUNTERS ================= */
+void upcounter(int val, port_t p);
+void downcounter(int val, port_t p);
+
 #endif
-
-/******************** GPIO FUNCTIONS ********************/
-
-
-
-
-
-void GPIO_pinmode(int a, pinmode_t b);
-void GPIO_pinwrite(int a, pinstate b);
-
-void delay_s(unsigned int x);
-
-void seven_segment(unsigned char a);
-void seven_segment_1(unsigned char a);
-
-void upcounter(int a);
-void downcounter(int a);
-
-void sport_counter(int x);
-void dport_counter(unsigned int x);
-
-void string_display(char arr[]);
-
-void keypad_scan(void);
-
-void sequential_op(unsigned char a);
-void cal_sequential(void);
-
-
-
