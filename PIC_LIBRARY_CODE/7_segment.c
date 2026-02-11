@@ -85,7 +85,7 @@ void downcounter(int a,port m)
             delay_s(1);
         }
 }
-void disp_4digit_counter( int x,port n) // count using 2 ports
+void disp_4digit_counter( int x,port n)   // count using 2 ports
 {
       volatile unsigned char *t,*p;
       unsigned int digit_1=0;
@@ -106,24 +106,24 @@ void disp_4digit_counter( int x,port n) // count using 2 ports
         
         *p=0x01;
      char m=(unsigned char)digit_1 +'0';
-       seven_segment_1(m);
-       delay_s(1);
+         seven_segment_1(m);
+         delay_s(1);
        
         
          *p=0x02;
      char n=(unsigned char)digit_2+'0';
-        seven_segment_1(n);
+         seven_segment_1(n);
          delay_s(1);
          
            *p=0x03;
      char o=(unsigned char)digit_3+'0';
-        seven_segment_1(o);
-        delay_s(1);
+         seven_segment_1(o);
+         delay_s(1);
         
           *p=0x0F;
      char p=(unsigned char)digit_4+'0';
-        seven_segment_1(p);
-          delay_s(1);
+         seven_segment_1(p);
+         delay_s(1);
           
     }
 }
