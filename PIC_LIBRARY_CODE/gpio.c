@@ -62,3 +62,49 @@ void toggle(int a)
         SETTOGGLE(a,PORTD);}
     else if((a>7)&&(a<11)) SETTOGGLE(a-8,PORTE);
 }
+
+void config_range_tris(uint8_t m,uint8_t n,triss o,pinmode_t s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
+{
+       volatile unsigned char *t;
+       t = tris[o];
+      
+    for(unsigned int i=m;i<n;i++)
+    {
+        if(s== OUTPUT)
+        {
+           *t&=~(1<<i);
+        }
+        else if(s==INPUT)
+        {
+             *t|=(1<<i);
+        }
+    }
+      
+}
+
+void config_range_ports(int m,int n,port o,pinstate s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
+{
+    
+    volatile unsigned char *p;
+    
+       p=port_s[o];
+    if(n > 8) n = 8;   // prevent overflow
+
+    for(unsigned char i = m; i < n; i++)
+    {
+        if(s == LOW)
+        {
+            *p &= ~(1 << i);
+        }
+        else if(s == HIGH)
+        { 
+            *p |= (1 << i);
+        }
+        else if(s == TOGGLE)   
+        {
+            *p ^= (1 << i);
+        }
+        
+    }
+       return ;
+}
