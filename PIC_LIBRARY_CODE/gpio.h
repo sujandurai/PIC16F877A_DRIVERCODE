@@ -130,5 +130,7 @@ void string_display(char arr[]);
 void sequential_op(unsigned char a);
 void cal_sequential(void);
 void keypad_scans(port n);
+void config_range_ports(int m,int n,port o,pinstate s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
+void config_range_tris(uint8_t m,uint8_t n,triss o,pinmode_t s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
 
 #endif
