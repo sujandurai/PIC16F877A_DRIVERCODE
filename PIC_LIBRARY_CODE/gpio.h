@@ -1,8 +1,6 @@
 #ifndef GPIOS_H
 #define GPIOS_H
 
-#include <xc.h>
-
 #define  SETIN(n,port)  (port|=1<<(n))
 #define  SETOUT(n,port) (port&=~(1<<(n)))
 #define  SETTOGGLE(n,port) (port^=(1<<(n)))
@@ -21,6 +19,7 @@ typedef enum
     TRIS_D = 3, 
     TRIS_E = 4,   
 }triss;
+
 typedef struct {
     unsigned char RA0:1;
     unsigned char RA1:1;
@@ -30,6 +29,7 @@ typedef struct {
     unsigned char RA5:1;
     
 } rega_bits;
+
 typedef struct {
     unsigned char RB0:1;
     unsigned char RB1:1;
@@ -41,6 +41,7 @@ typedef struct {
     unsigned char RB7:1;
  
 } regb_bits;
+
 typedef struct {
     unsigned char RC0:1;
     unsigned char RC1:1;
@@ -72,16 +73,25 @@ typedef struct {
    
 } rege_bits;
 
+/* =========================================================
+   REGISTER DEFINITIONS
+   ========================================================= */
+
 #define  SETHIGH(n,port) (port|=1<<(n))
 #define  SETLOW(n,port)  (port&=~(1<<(n)))
 
 #ifndef PORT
+
+/* PORTA */
+
 #define PORTA (*(volatile unsigned char *)0X05)
 #define PORTAbits (*(volatile rega_bits*)0X05)
 #define TRISA (*(volatile unsigned char *)0X85 )  //PORT A//
 #define TRISAbits (*(volatile rega_bits *)0X85)
 #define ADCON1 (*(volatile unsigned char*)0x9f)
 #define STATUS (*(volatile unsigned char*)0x03)
+
+/* PORTB */
 
 #define PORTB (*(volatile unsigned char *)0X06)
 #define PORTBbits (*(volatile unsigned regb_bits *)0X06)
@@ -91,15 +101,21 @@ typedef struct {
 
 #define  TMR0 (*(volatile unsigned char*)0x101)
 
+/* PORTC */
+
 #define PORTC (*(volatile unsigned char * ) 0X07)
 #define PORTCbits (*(volatile unsigned regc_bits * ) 0X07)
 #define TRISC (*(volatile unsigned char * )0X87)  //PORT C//
 #define TRISCbits (*(volatile unsigned regc_bits * )0X87) 
 
+/* PORTD */
+
 #define PORTD (*(volatile unsigned char * )0X08)
 #define PORTDbits (*(volatile unsigned regd_bits * )0X08)
 #define TRISD (*(volatile unsigned char *)0X88 )  //PORT D//
 #define TRISDbits (*(volatile unsigned regd_bits *)0X88 )  
+
+/* PORTE */
 
 #define PORTE (*(volatile unsigned char *)0X09)
 #define PORTEbits (*(volatile unsigned rege_bits *)0X09)
@@ -110,9 +126,17 @@ typedef struct {
 
 #endif
 
+/* =========================================================
+   GLOBAL VARIABLES (DEFINED IN .c)
+   ========================================================= */
+
 volatile unsigned char *port_s[] = { &PORTA,&PORTB,&PORTC,&PORTD,&PORTE };
 volatile unsigned char *tris[] = { &TRISA,&TRISB,&TRISC,&TRISD,&TRISE };
 
+
+/* =========================================================
+   GPIO & PORT FUNCTIONS
+   ========================================================= */
 
 void GPIO_pinmode(int a,pinmode_t b);
 void GPIO_pinwrite(int a,pinstate b);
