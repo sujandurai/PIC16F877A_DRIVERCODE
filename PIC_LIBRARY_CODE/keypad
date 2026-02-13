@@ -1,4 +1,6 @@
 #include"gpio.h"
+#include<xc.h>
+
 void keypad_scan(port n,port m)
 {   volatile unsigned char *t,*p;
     unsigned char keyboard[4][4] = 
