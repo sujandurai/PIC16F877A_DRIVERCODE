@@ -251,15 +251,7 @@ This allows dynamic register selection without large switch-case blocks.
 ✔ Supports single pin and range operations
 ✔ Easy integration into embedded projects
 
----
 
-# Limitations
-
-* Designed specifically for PIC16F877A
-* Pin numbering must follow defined mapping
-* Analog configuration limited to ADCON1 = 0x06
-
----
 
 # Example Usage
 
