@@ -220,8 +220,7 @@ void main(void)
 ## Calculator System Example
 
 ```c
-#include "calculator.h"
-#include "keypad.h"
+#include"gpio.h"
 
 void main(void)
 {
