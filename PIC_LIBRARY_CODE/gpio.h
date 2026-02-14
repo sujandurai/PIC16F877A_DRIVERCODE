@@ -1,160 +1,210 @@
 #ifndef GPIOS_H
 #define GPIOS_H
 
-#define  SETIN(n,port)  (port|=1<<(n))
-#define  SETOUT(n,port) (port&=~(1<<(n)))
-#define  SETTOGGLE(n,port) (port^=(1<<(n)))
-#define  SETHIGH(n,port) (port|=1<<(n))
-#define  SETLOW(n,port)  (port&=~(1<<(n)))
-
-typedef enum { OUTPUT = 0, INPUT  = 1 } pinmode_t;
-typedef enum { HIGH = 1, LOW = 0, TOGGLE= 2 } pinstate;
-typedef enum { PORT_A = 0, PORT_B, PORT_C, PORT_D, PORT_E } port;
-typedef enum
-{
-    
-    TRIS_A = 0,
-    TRIS_B = 1,
-    TRIS_C = 2, 
-    TRIS_D = 3, 
-    TRIS_E = 4,   
-}triss;
-
-typedef struct {
-    unsigned char RA0:1;
-    unsigned char RA1:1;
-    unsigned char RA2:1;
-    unsigned char RA3:1;
-    unsigned char RA4:1;
-    unsigned char RA5:1;
-    
-} rega_bits;
-
-typedef struct {
-    unsigned char RB0:1;
-    unsigned char RB1:1;
-    unsigned char RB2:1;
-    unsigned char RB3:1;
-    unsigned char RB4:1;
-    unsigned char RB5:1;
-    unsigned char RB6:1;
-    unsigned char RB7:1;
- 
-} regb_bits;
-
-typedef struct {
-    unsigned char RC0:1;
-    unsigned char RC1:1;
-    unsigned char RC2:1;
-    unsigned char RC3:1;
-    unsigned char RC4:1;
-    unsigned char RC5:1;
-    unsigned char RC6:1;
-    unsigned char RC7:1;
- 
-} regc_bits;
-
-typedef struct {
-    unsigned char RD0:1;
-    unsigned char RD1:1;
-    unsigned char RD2:1;
-    unsigned char RD3:1;
-    unsigned char RD4:1;
-    unsigned char RD5:1;
-    unsigned char RD6:1;
-    unsigned char RD7:1;
- 
-} regd_bits;
-
-typedef struct {
-    unsigned char RE0:1;
-    unsigned char RE1:1;
-    unsigned char RE2:1;
-   
-} rege_bits;
+#include <stdint.h>
 
 /* =========================================================
-   REGISTER DEFINITIONS
+   BIT MANIPULATION MACROS
    ========================================================= */
 
-#define  SETHIGH(n,port) (port|=1<<(n))
-#define  SETLOW(n,port)  (port&=~(1<<(n)))
+#define SET_BIT(port,n)     (port |= (1 << (n)))
+#define CLEAR_BIT(port,n)   (port &= ~(1 << (n)))
+#define TOGGLE_BIT(port,n)  (port ^= (1 << (n)))
 
-#ifndef PORT
+#define SETIN(n,port)       (port |= (1 << (n)))     // TRIS = 1 → INPUT
+#define SETOUT(n,port)      (port &= ~(1 << (n)))    // TRIS = 0 → OUTPUT
+
+#define SETHIGH(n,port)     (port |= (1 << (n)))
+#define SETLOW(n,port)      (port &= ~(1 << (n)))
+
+
+/* =========================================================
+   ENUM DEFINITIONS
+   ========================================================= */
+
+typedef enum
+{
+    OUTPUT = 0,
+    INPUT  = 1
+} pinmode_t;
+
+typedef enum
+{
+    LOW = 0,
+    HIGH = 1,
+    TOGGLE = 2
+} pinstate;
+
+typedef enum
+{
+    PORT_A = 0,
+    PORT_B,
+    PORT_C,
+    PORT_D,
+    PORT_E
+} port;
+
+typedef enum
+{
+    TRIS_A = 0,
+    TRIS_B,
+    TRIS_C,
+    TRIS_D,
+    TRIS_E
+} triss;
+
+
+/* =========================================================
+   REGISTER BIT STRUCTURES
+   ========================================================= */
+
+typedef struct
+{
+    unsigned RA0:1;
+    unsigned RA1:1;
+    unsigned RA2:1;
+    unsigned RA3:1;
+    unsigned RA4:1;
+    unsigned RA5:1;
+} rega_bits;
+
+typedef struct
+{
+    unsigned RB0:1;
+    unsigned RB1:1;
+    unsigned RB2:1;
+    unsigned RB3:1;
+    unsigned RB4:1;
+    unsigned RB5:1;
+    unsigned RB6:1;
+    unsigned RB7:1;
+} regb_bits;
+
+typedef struct
+{
+    unsigned RC0:1;
+    unsigned RC1:1;
+    unsigned RC2:1;
+    unsigned RC3:1;
+    unsigned RC4:1;
+    unsigned RC5:1;
+    unsigned RC6:1;
+    unsigned RC7:1;
+} regc_bits;
+
+typedef struct
+{
+    unsigned RD0:1;
+    unsigned RD1:1;
+    unsigned RD2:1;
+    unsigned RD3:1;
+    unsigned RD4:1;
+    unsigned RD5:1;
+    unsigned RD6:1;
+    unsigned RD7:1;
+} regd_bits;
+
+typedef struct
+{
+    unsigned RE0:1;
+    unsigned RE1:1;
+    unsigned RE2:1;
+} rege_bits;
+
+
+/* =========================================================
+   REGISTER DEFINITIONS  (PIC16F877A MEMORY MAP)
+   ========================================================= */
+
+#ifndef PORT_REG_DEFINED
 
 /* PORTA */
-
-#define PORTA (*(volatile unsigned char *)0X05)
-#define PORTAbits (*(volatile rega_bits*)0X05)
-#define TRISA (*(volatile unsigned char *)0X85 )  //PORT A//
-#define TRISAbits (*(volatile rega_bits *)0X85)
-#define ADCON1 (*(volatile unsigned char*)0x9f)
-#define STATUS (*(volatile unsigned char*)0x03)
+#define PORTA      (*(volatile uint8_t *)0x05)
+#define TRISA      (*(volatile uint8_t *)0x85)
+#define PORTAbits  (*(volatile rega_bits *)0x05)
+#define TRISAbits  (*(volatile rega_bits *)0x85)
 
 /* PORTB */
-
-#define PORTB (*(volatile unsigned char *)0X06)
-#define PORTBbits (*(volatile unsigned regb_bits *)0X06)
-#define TRISB (*(volatile unsigned char *)0X86 )  //PORT B//
-#define TRISBbits (*(volatile unsigned regb_bits *)0X86 ) 
-#define OPTIONAL_REG (*(volatile unsigned char *)0X81)
-
-#define  TMR0 (*(volatile unsigned char*)0x101)
+#define PORTB      (*(volatile uint8_t *)0x06)
+#define TRISB      (*(volatile uint8_t *)0x86)
+#define PORTBbits  (*(volatile regb_bits *)0x06)
+#define TRISBbits  (*(volatile regb_bits *)0x86)
 
 /* PORTC */
-
-#define PORTC (*(volatile unsigned char * ) 0X07)
-#define PORTCbits (*(volatile unsigned regc_bits * ) 0X07)
-#define TRISC (*(volatile unsigned char * )0X87)  //PORT C//
-#define TRISCbits (*(volatile unsigned regc_bits * )0X87) 
+#define PORTC      (*(volatile uint8_t *)0x07)
+#define TRISC      (*(volatile uint8_t *)0x87)
+#define PORTCbits  (*(volatile regc_bits *)0x07)
+#define TRISCbits  (*(volatile regc_bits *)0x87)
 
 /* PORTD */
-
-#define PORTD (*(volatile unsigned char * )0X08)
-#define PORTDbits (*(volatile unsigned regd_bits * )0X08)
-#define TRISD (*(volatile unsigned char *)0X88 )  //PORT D//
-#define TRISDbits (*(volatile unsigned regd_bits *)0X88 )  
+#define PORTD      (*(volatile uint8_t *)0x08)
+#define TRISD      (*(volatile uint8_t *)0x88)
+#define PORTDbits  (*(volatile regd_bits *)0x08)
+#define TRISDbits  (*(volatile regd_bits *)0x88)
 
 /* PORTE */
+#define PORTE      (*(volatile uint8_t *)0x09)
+#define TRISE      (*(volatile uint8_t *)0x89)
+#define PORTEbits  (*(volatile rege_bits *)0x09)
+#define TRISEbits  (*(volatile rege_bits *)0x89)
 
-#define PORTE (*(volatile unsigned char *)0X09)
-#define PORTEbits (*(volatile unsigned rege_bits *)0X09)
-#define TRISE (*(volatile unsigned char *)0x89)   //PORT E//
-#define TRISEbits (*(volatile unsigned rege_bits *)0x89) 
-#define INTCON (*(volatile unsigned char *)0x0B)
-#define TMRO (*(volatile unsigned char *)0X01)
+/* OTHER IMPORTANT REGISTERS */
+#define STATUS     (*(volatile uint8_t *)0x03)
+#define ADCON1     (*(volatile uint8_t *)0x9F)
+#define INTCON     (*(volatile uint8_t *)0x0B)
+#define OPTION_REG (*(volatile uint8_t *)0x81)
+#define TMR0       (*(volatile uint8_t *)0x01)
 
 #endif
 
-/* =========================================================
-   GLOBAL VARIABLES (DEFINED IN .c)
-   ========================================================= */
-
-volatile unsigned char *port_s[] = { &PORTA,&PORTB,&PORTC,&PORTD,&PORTE };
-volatile unsigned char *tris[] = { &TRISA,&TRISB,&TRISC,&TRISD,&TRISE };
-
 
 /* =========================================================
-   GPIO & PORT FUNCTIONS
+   GLOBAL PORT POINTER ARRAYS
    ========================================================= */
 
-void GPIO_pinmode(int a,pinmode_t b);
-void GPIO_pinwrite(int a,pinstate b);
-int pin_read(int a);
-void toggle(int a);
-void delay_s(unsigned int x);
-void seven_segment(unsigned char a,port n);
-void seven_segment_1(unsigned char a);
-void upcounter(int a,port m);
-void downcounter(int a,port m);
-void keypad_scan(port n,port m);
-void dport_counter(int x,port n);
-void sport_counter(unsigned int x);
+extern volatile uint8_t *port_s[];
+extern volatile uint8_t *tris[];
+
+
+/* =========================================================
+   GPIO FUNCTION PROTOTYPES
+   ========================================================= */
+
+void GPIO_pinmode(int pin, pinmode_t mode);
+void GPIO_pinwrite(int pin, pinstate state);
+int  pin_read(int pin);
+void toggle(int pin);
+/* RANGE CONFIGURATION FUNCTIONS */
+
+void config_range_ports(int low, int high, port p, pinstate state);
+void config_range_tris(uint8_t low, uint8_t high, triss t, pinmode_t mode);
+
+
+/* 8BIT TIMER DELAY FUNCTIONS */
+
+void delay_s(unsigned int seconds);
+
+/* DISPLAY & COUNTER FUNCTIONS */
+
+void seven_segment(uint8_t value, port p);
+void seven_segment_1(uint8_t value);
+
+void upcounter(int delay, port p);
+void downcounter(int delay, port p);
+
+void keypad_scan(port row, port col);
+void keypad_scans(port p);
+
+void dport_counter(int delay, port p);
+void sport_counter(unsigned int delay);
+
 void string_display(char arr[]);
-void sequential_op(unsigned char a);
+
+void sequential_op(uint8_t value);
 void cal_sequential(void);
-void keypad_scans(port n);
-void config_range_ports(int m,int n,port o,pinstate s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
-void config_range_tris(uint8_t m,uint8_t n,triss o,pinmode_t s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
+
+
+
+
 
 #endif
