@@ -184,7 +184,7 @@ void config_range_tris(uint8_t low, uint8_t high, triss t, pinmode_t mode);
 
 void delay_s(unsigned int seconds);
 
-/* DISPLAY & COUNTER FUNCTIONS */
+/* APPLICATION  FUNCTIONS */
 
 void seven_segment(uint8_t value, port p);
 void seven_segment_1(uint8_t value);
@@ -195,8 +195,8 @@ void downcounter(int delay, port p);
 void keypad_scan(port row, port col);
 void keypad_scans(port p);
 
-void dport_counter(int delay, port p);
-void sport_counter(unsigned int delay);
+void double_port_counter(int delay, port p);
+void single_port_counter(unsigned int delay);
 
 void string_display(char arr[]);
 
