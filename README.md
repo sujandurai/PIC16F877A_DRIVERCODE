@@ -1,69 +1,77 @@
-# GPIO Driver Library – PIC16F877A (8-BIT)
+# PIC16F877A Embedded Driver Framework
 
-⭐ A high-performance, register-level embedded driver library for the **Microchip PIC16F877A** microcontroller.
+### GPIO • Display • Keypad • Calculator Engine (8-Bit)
 
-Developed using pure register-level programming (bypassing heavy built-in libraries where possible) to provide deep hardware control, predictable timing, and minimal overhead.
+⭐ A modular, register-level embedded firmware framework for the **Microchip PIC16F877A** microcontroller.
+
+This project provides a clean Hardware Abstraction Layer (HAL) for digital I/O, display control, keypad scanning, and an embedded calculator system while maintaining direct access to hardware registers for deterministic performance.
+
+Designed for:
+
+* Embedded Systems Students
+* Firmware Engineers
+* Academic Projects
+* Bare-Metal Development
+* Hardware Prototyping
 
 ---
 
-# 🔧 Features
+# ✨ Key Features
 
-### Full Port Control
+### ✔ Register-Level GPIO Control
 
-Comprehensive support for **PORTA through PORTE** with physical pin mapping.
+Direct manipulation of **TRISx** and **PORTx** registers using optimized pointer abstraction.
 
-### Register-Based Architecture
+### ✔ Full Port Coverage
 
-Direct manipulation of **TRISx** and **PORTx** registers using pointer abstraction.
+Supports all microcontroller ports:
 
-### ADC Management
+PORTA • PORTB • PORTC • PORTD • PORTE
 
-Automatic disabling of analog functionality using **ADCON1** for stable digital I/O.
+### ✔ Automatic Analog Disable
 
-### Seven-Segment Display Support
+Configures analog pins as digital using **ADCON1** for reliable I/O behavior.
 
-Dedicated APIs for:
+### ✔ Seven-Segment Display Driver
+
+Supports:
 
 * Common Anode
 * Common Cathode
-* Hexadecimal Display (0–F)
+* Hexadecimal Characters (0–F)
 
-### Matrix Keypad Integration
+### ✔ Matrix Keypad Interface
 
-Supports 4×4 keypad scanning** for calculator and user-input systems.
+Compatible with **4×3** and **4×4** keypad layouts for calculator and user interfaces.
 
-### Embedded Calculator Engine
+### ✔ Embedded Calculator Engine
 
 Implements arithmetic operations:
 
-* Addition
-* Subtraction
-* Multiplication
-* Division
+Addition • Subtraction • Multiplication • Division
 
-With multi-digit handling and seven-segment output.
+With multi-digit processing and seven-segment output.
 
-### Learning-Centric Design
+### ✔ Lightweight & Deterministic
 
-Ideal for students transitioning from high-level frameworks to **bare-metal embedded firmware development**.
+No unnecessary abstraction layers — optimized for predictable execution timing.
 
 ---
 
-# 📁 Project Structure
+# 📂 Repository Structure
 
 ```
 PIC16F877A/
 
-├── pic_library_code/                    # Header Files
+├── pic_library_code/                        # Header Files
 │   ├── gpio.h
-│
-├── gpoi_middle_code/                    # Source Files
+├── gpio_middle_code/                        # Source Files
 │   ├── gpio.c
 │   ├── seven_segment.c
 │   ├── keypad.c
 │   └── calculator.c
 │
-├── EXAMPLE CODES/
+├── EXAMPLE CODES/              # Application Examples
 │   ├── calculator_system.c
 │   └── counters.c
 │
@@ -74,103 +82,103 @@ PIC16F877A/
 
 # 📌 Core API Reference
 
-## GPIO Control
+## GPIO Control Interface
 
 ```
 Function                                              Description
-------------------------------------------------------------------------------------------
-void GPIO_pinmode(int pin, pinmode_t mode)            - Sets a specific physical pin as INPUT or OUTPUT.
+------------------------------------------------------------------------------------------------
+void GPIO_pinmode(int pin, pinmode_t mode)            Configure a physical pin as INPUT or OUTPUT.
 
-void GPIO_pinwrite(int pin, pinstate state)           - Writes HIGH (1) or LOW (0) to a specific pin.
+void GPIO_pinwrite(int pin, pinstate state)           Write HIGH or LOW logic level to a pin.
 
-int pin_read(int pin)                                 - Returns the current digital state of a pin.
+int  pin_read(int pin)                                Read the current digital state of a pin.
 
-void toggle(int pin)                                  - Toggles the logic state of a pin.
+void toggle(int pin)                                  Toggle the logic state of a pin.
 
-void port_mode(port n, pinmode_t mode)                - Configures an entire port (PORTA–PORTE).
+void port_mode(port port_name, pinmode_t mode)        Configure direction for an entire port.
 
 void config_range_tris(uint8_t start,
                        uint8_t end,
-                       port n,
-                       pinmode_t mode)                - Configures multiple TRIS bits at once.
+                       port port_name,
+                       pinmode_t mode)                Configure multiple TRIS bits simultaneously.
 
 void config_range_ports(uint8_t start,
                         uint8_t end,
-                        port n,
-                        pinstate state)               - Performs batch PORT operations.
+                        port port_name,
+                        pinstate state)               Perform batch operations on PORT bits.
 ```
 
 ---
 
-# 📌 Peripheral Functions
+# 📌 Peripheral Interfaces
 
-## Seven Segment Display
-
-```
-Function                                              Description
-------------------------------------------------------------------------------------------
-void seven_segment_ANODE(char value, port n)          - Displays hexadecimal value (0–F) on Common Anode.
-
-void seven_segment_CATHODE(char value, port n)        - Displays hexadecimal value (0–F) on Common Cathode.
-```
-
-## Keypad
+## Seven-Segment Display
 
 ```
 Function                                              Description
-------------------------------------------------------------------------------------------
-char keypad_scan_phone(void)                          - Scans  4×4 keypad and returns pressed key.
+------------------------------------------------------------------------------------------------
+void seven_segment_ANODE(char value, port port_name)  Display hexadecimal value (0–F) on Common Anode display.
+
+void seven_segment_CATHODE(char value, port port_name)Display hexadecimal value (0–F) on Common Cathode display.
+```
+
+## Keypad Driver
+
+```
+Function                                              Description
+------------------------------------------------------------------------------------------------
+char keypad_scan_phone(void)                          Scan keypad matrix and return pressed key.
 ```
 
 ## Calculator Engine
 
 ```
 Function                                              Description
-------------------------------------------------------------------------------------------
-void calculator_init(void)                            - Initializes calculator modules.
+------------------------------------------------------------------------------------------------
+void calculator_init(void)                            Initialize calculator modules and display.
 
-void calculator_input(char key)                       - Processes keypad input for arithmetic logic.
+void calculator_input(char key)                       Process keypad input and arithmetic logic.
 
-int calculator_get_result(void)                       - Returns computed result.
+int  calculator_get_result(void)                      Retrieve computed calculation result.
 ```
 
 ---
 
-# ⚠️ Critical Hardware Notes
+# ⚠️ Hardware Considerations
 
-## ADCON1 Register
+## Analog Configuration (PORTA / PORTE)
 
-PORTA and PORTE pins default to analog mode on reset.
+Pins default to analog mode after reset.
 
-To use them as digital:
+Configure as digital:
 
-```
+```c
 ADCON1 = 0x06;
 ```
 
 ---
 
-## RA4 Open-Drain Behavior
+## RA4 Output Characteristics
 
-RA4 can only drive LOW internally.
+RA4 operates as an **open-drain output**.
 
-External pull-up resistor required (≈10kΩ) to generate HIGH output.
+Requirement:
+
+External pull-up resistor (~10 kΩ) for HIGH level output.
 
 ---
 
 ## PORTB Internal Pull-Ups
 
-Internal weak pull-ups can be enabled using:
+Enable internal pull-ups when using keypad:
 
-```
+```c
 OPTION_REG &= ~(1 << 7);
 ```
 
-Useful for keypad interfacing without external resistors.
-
 ---
 
-# 🧠 Technical Reference
+# 🧠 Technical Specifications
 
 | Parameter       | Value              |
 | --------------- | ------------------ |
@@ -186,7 +194,7 @@ https://ww1.microchip.com/downloads/en/devicedoc/39582b.pdf
 
 ---
 
-# 🚀 Example Usage
+# 🚀 Example Applications
 
 ## GPIO Blink Example
 
@@ -195,7 +203,7 @@ https://ww1.microchip.com/downloads/en/devicedoc/39582b.pdf
 
 #define _XTAL_FREQ 20000000
 
-void main()
+void main(void)
 {
     GPIO_pinmode(33, OUTPUT);
 
@@ -209,13 +217,13 @@ void main()
 
 ---
 
-## Calculator Example
+## Calculator System Example
 
 ```c
 #include "calculator.h"
 #include "keypad.h"
 
-void main()
+void main(void)
 {
     calculator_init();
 
@@ -233,15 +241,31 @@ void main()
 
 ---
 
-# ⚖️ License
+# 🏗 Internal Architecture
 
-This project is open-source.
+The framework uses pointer-based register abstraction:
 
-Free to use for:
+```
+volatile unsigned char *port_s[];
+volatile unsigned char *tris[];
+```
 
-* Educational purposes
+Advantages:
+
+✔ Eliminates large switch-case blocks
+✔ Faster execution
+✔ Cleaner scalable design
+✔ Reduced code duplication
+
+---
+
+# 📜 License
+
+This project is open-source and free for:
+
+* Education
 * Research
-* Embedded product prototyping
+* Embedded prototyping
 * Commercial evaluation
 
 ---
@@ -249,8 +273,8 @@ Free to use for:
 # 👨‍💻 Author
 
 Embedded Systems Developer
-PIC Firmware & Driver Architecture
+PIC Firmware Architecture & Driver Design
 
 ---
 
-⭐ If this project helps you, consider giving it a star.
+⭐ If you find this project useful, consider giving it a star.
