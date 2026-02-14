@@ -1,3 +1,4 @@
+#include"GPIO.H"
 
 void delay_s(unsigned int x)
 {
