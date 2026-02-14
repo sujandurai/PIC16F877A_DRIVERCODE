@@ -1,110 +1,260 @@
 #include "gpios.h"
 
-volatile unsigned char *port_s[] = { &PORTA,&PORTB,&PORTC,&PORTD,&PORTE };
-volatile unsigned char *tris[] = { &TRISA,&TRISB,&TRISC,&TRISD,&TRISE };
+/* =========================================================
+   GLOBAL POINTER ARRAYS
+   ========================================================= */
 
-void GPIO_pinmode(int a,pinmode_t b)
+volatile unsigned char *port_s[] = { &PORTA, &PORTB, &PORTC, &PORTD, &PORTE };
+volatile unsigned char *tris[]   = { &TRISA, &TRISB, &TRISC, &TRISD, &TRISE };
+
+
+/* =========================================================
+   GPIO PIN MODE
+   ========================================================= */
+
+void GPIO_pinmode(int pin, pinmode_t mode)
 {
-    if(a>=33&&a<=40){ if(b==0) SETOUT(a-33,TRISB); else SETIN(a-33,TRISB); }
-    else if(a>=2 && a<=7){ ADCON1 = 0x06; if(b==0) SETOUT(a-2,TRISA); else SETIN(a-2,TRISA); }
-    else if(((a>14)&&(a<19))||((a>22)&&(a<27))){
-        if(a<19) a=a-15; else a=a-19;
-        if(b==0) SETOUT(a,TRISC); else SETIN(a,TRISC);
+    /* ---------- PORTB ---------- */
+    if (pin >= 33 && pin <= 40)
+    {
+        if (mode == OUTPUT)
+            SETOUT(pin - 33, TRISB);
+        else
+            SETIN(pin - 33, TRISB);
     }
-    else if(((a > 18) && (a < 23)) || ((a > 26) && (a < 31))){
-        if(a<23) a=a-19; else a=a-23;
-        if(b==0) SETOUT(a,TRISD); else SETIN(a,TRISD);
-    }
-    else if((a>7)&&(a<11)){
+
+    /* ---------- PORTA ---------- */
+    else if (pin >= 2 && pin <= 7)
+    {
         ADCON1 = 0x06;
-        if(b==0) SETOUT(a-8,TRISE); else SETIN(a-8,TRISE);
+
+        if (mode == OUTPUT)
+            SETOUT(pin - 2, TRISA);
+        else
+            SETIN(pin - 2, TRISA);
     }
-}
 
-void GPIO_pinwrite(int a,pinstate b)
-{
-    if(a>=33&&a<=40){ if(b==0) SETLOW(a-33,PORTB); else SETHIGH(a-33,PORTB); }
-    else if(((a>=2)&&(a<=7))){ if(b==0) SETLOW(a-2,PORTA); else SETHIGH(a-2,PORTA); }
-    else if(((a > 14) && (a < 19)) || ((a > 22) && (a < 27))){
-        if(a<19) a=a-15; else a=a-19;
-        if(b==0) SETLOW(a,PORTC); else SETHIGH(a,PORTC);
-    }
-    else if(((a>18)&&(a<23))||((a>26)&&(a<31))){
-        if(a<23) a=a-19; else a=a-23;
-        if(b==0) SETLOW(a,PORTD); else SETHIGH(a,PORTD);
-    }
-    else if((a>7)&&(a<11)){ if(b==0) SETLOW(a-8,PORTE); else SETHIGH(a-8,PORTE); }
-}
-
-int pin_read(int a)
-{
-   if(a>=33&&a<=40) return(PORTB&(1<<(a-33)))?1:0;
-   else if(a>=2&&a<=7) return(PORTA&(1<<(a-2)))?1:0;
-   else if(((a>14)&&(a<19))||((a>22)&&(a<27))){
-     if(a<19)a=a-15; else a=a-19;
-     return(PORTC&(1<<a))?1:0;}
-   else if(((a>18)&&(a<23))||((a>26)&&(a<31))){
-      if(a<23)a=a-19;else a=a-23;
-      return(PORTD&(1<<a))?1:0;}
-   else if((a>7)&&(a<11)) return(PORTE&(1<<(a-8)))?1:0;
-   return 0;
-}
-
-void toggle(int a)
-{
-    if(a>=33&&a<=40) SETTOGGLE(a-33,PORTB);
-    else if(((a>=2)&&(a<=7))) SETTOGGLE(a-2,PORTA);
-    else if(((a > 14) && (a < 19)) || ((a > 22) && (a < 27))){
-        if(a<19)a=a-15; else a=a-19;
-        SETTOGGLE(a,PORTC);}
-    else if(((a>18)&&(a<23))||((a>26)&&(a<31))){
-        if(a<23)a=a-19; else a=a-23;
-        SETTOGGLE(a,PORTD);}
-    else if((a>7)&&(a<11)) SETTOGGLE(a-8,PORTE);
-}
-
-void config_range_tris(uint8_t m,uint8_t n,triss o,pinmode_t s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
-{
-       volatile unsigned char *t;
-       t = tris[o];
-      
-    for(unsigned int i=m;i<n;i++)
+    /* ---------- PORTC ---------- */
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
     {
-        if(s== OUTPUT)
-        {
-           *t&=~(1<<i);
-        }
-        else if(s==INPUT)
-        {
-             *t|=(1<<i);
-        }
+        if (pin < 19)
+            pin -= 15;
+        else
+            pin -= 19;
+
+        if (mode == OUTPUT)
+            SETOUT(pin, TRISC);
+        else
+            SETIN(pin, TRISC);
     }
-      
+
+    /* ---------- PORTD ---------- */
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23)
+            pin -= 19;
+        else
+            pin -= 23;
+
+        if (mode == OUTPUT)
+            SETOUT(pin, TRISD);
+        else
+            SETIN(pin, TRISD);
+    }
+
+    /* ---------- PORTE ---------- */
+    else if ((pin > 7) && (pin < 11))
+    {
+        ADCON1 = 0x06;
+
+        if (mode == OUTPUT)
+            SETOUT(pin - 8, TRISE);
+        else
+            SETIN(pin - 8, TRISE);
+    }
+
+    /* ---------- INVALID PIN ---------- */
+    else
+    {
+        // Do nothing or error handling
+    }
 }
 
-void config_range_ports(int m,int n,port o,pinstate s) // m->Lower bit  n-> High bit  port->tris or port set input 1, output 0; range (0-7)
-{
-    
-    volatile unsigned char *p;
-    
-       p=port_s[o];
-    if(n > 8) n = 8;   // prevent overflow
 
-    for(unsigned char i = m; i < n; i++)
+/* =========================================================
+   GPIO WRITE
+   ========================================================= */
+
+void GPIO_pinwrite(int pin, pinstate state)
+{
+    if (pin >= 33 && pin <= 40)
     {
-        if(s == LOW)
-        {
-            *p &= ~(1 << i);
-        }
-        else if(s == HIGH)
-        { 
-            *p |= (1 << i);
-        }
-        else if(s == TOGGLE)   
-        {
-            *p ^= (1 << i);
-        }
-        
+        if (state == LOW)
+            SETLOW(pin - 33, PORTB);
+        else
+            SETHIGH(pin - 33, PORTB);
     }
-       return ;
+
+    else if (pin >= 2 && pin <= 7)
+    {
+        if (state == LOW)
+            SETLOW(pin - 2, PORTA);
+        else
+            SETHIGH(pin - 2, PORTA);
+    }
+
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
+    {
+        if (pin < 19)
+            pin -= 15;
+        else
+            pin -= 19;
+
+        if (state == LOW)
+            SETLOW(pin, PORTC);
+        else
+            SETHIGH(pin, PORTC);
+    }
+
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23)
+            pin -= 19;
+        else
+            pin -= 23;
+
+        if (state == LOW)
+            SETLOW(pin, PORTD);
+        else
+            SETHIGH(pin, PORTD);
+    }
+
+    else if ((pin > 7) && (pin < 11))
+    {
+        if (state == LOW)
+            SETLOW(pin - 8, PORTE);
+        else
+            SETHIGH(pin - 8, PORTE);
+    }
+
+    else
+    {
+        // Invalid pin
+    }
+}
+
+
+/* =========================================================
+   GPIO READ
+   ========================================================= */
+
+int pin_read(int pin)
+{
+    if (pin >= 33 && pin <= 40)
+        return (PORTB & (1 << (pin - 33))) ? 1 : 0;
+
+    else if (pin >= 2 && pin <= 7)
+        return (PORTA & (1 << (pin - 2))) ? 1 : 0;
+
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
+    {
+        if (pin < 19) pin -= 15;
+        else pin -= 19;
+
+        return (PORTC & (1 << pin)) ? 1 : 0;
+    }
+
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23) pin -= 19;
+        else pin -= 23;
+
+        return (PORTD & (1 << pin)) ? 1 : 0;
+    }
+
+    else if ((pin > 7) && (pin < 11))
+        return (PORTE & (1 << (pin - 8))) ? 1 : 0;
+
+    else
+        return 0;
+}
+
+
+/* =========================================================
+   TOGGLE
+   ========================================================= */
+
+void toggle(int pin)
+{
+    if (pin >= 33 && pin <= 40)
+        SETTOGGLE(pin - 33, PORTB);
+
+    else if (pin >= 2 && pin <= 7)
+        SETTOGGLE(pin - 2, PORTA);
+
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
+    {
+        if (pin < 19) pin -= 15;
+        else pin -= 19;
+
+        SETTOGGLE(pin, PORTC);
+    }
+
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23) pin -= 19;
+        else pin -= 23;
+
+        SETTOGGLE(pin, PORTD);
+    }
+
+    else if ((pin > 7) && (pin < 11))
+        SETTOGGLE(pin - 8, PORTE);
+
+    else
+    {
+        // Invalid pin
+    }
+}
+
+
+/* =========================================================
+   RANGE TRIS CONFIG
+   ========================================================= */
+
+void config_range_tris(uint8_t low, uint8_t high, triss t, pinmode_t mode)
+{
+    volatile unsigned char *reg = tris[t];
+
+    for (uint8_t i = low; i < high; i++)
+    {
+        if (mode == OUTPUT)
+            *reg &= ~(1 << i);
+        else
+            *reg |= (1 << i);
+    }
+}
+
+
+/* =========================================================
+   RANGE PORT CONFIG
+   ========================================================= */
+
+void config_range_ports(int low, int high, port p, pinstate state)
+{
+    volatile unsigned char *reg = port_s[p];
+
+    if (high > 8) high = 8;
+
+    for (int i = low; i < high; i++)
+    {
+        if (state == LOW)
+            *reg &= ~(1 << i);
+
+        else if (state == HIGH)
+            *reg |= (1 << i);
+
+        else if (state == TOGGLE)
+            *reg ^= (1 << i);
+    }
 }
