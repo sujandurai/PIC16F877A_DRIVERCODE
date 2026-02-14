@@ -1,267 +1,204 @@
-Here is a professional **README.md** for your GPIO library designed for the **PIC16F877A**.
+# GPIO Driver Library – PIC16F877A (8-BIT)
+
+⭐ A high-performance, register-level embedded driver library for the **Microchip PIC16F877A** microcontroller.
+
+Developed using pure register-level programming (bypassing heavy built-in libraries where possible) to provide deep hardware control, predictable timing, and minimal overhead.
 
 ---
 
-# GPIO Library for PIC16F877A
+# 🔧 Features
 
-## Overview
+### Full Port Control
 
-This GPIO library provides a hardware abstraction layer (HAL) for digital input/output operations on the **PIC16F877A** microcontroller.
+Comprehensive support for **PORTA through PORTE** with physical pin mapping.
 
-It simplifies:
+### Register-Based Architecture
 
-* Pin configuration (Input / Output)
-* Digital write (High / Low)
-* Digital read
-* Pin toggle
-* Range-based TRIS configuration
-* Range-based PORT operations
+Direct manipulation of **TRISx** and **PORTx** registers using pointer abstraction.
 
-The library maps physical microcontroller pins to corresponding PORT and TRIS registers internally.
+### ADC Management
+
+Automatic disabling of analog functionality using **ADCON1** for stable digital I/O.
+
+### Seven-Segment Display Support
+
+Dedicated APIs for:
+
+* Common Anode
+* Common Cathode
+* Hexadecimal Display (0–F)
+
+### Matrix Keypad Integration
+
+Supports 4×4 keypad scanning** for calculator and user-input systems.
+
+### Embedded Calculator Engine
+
+Implements arithmetic operations:
+
+* Addition
+* Subtraction
+* Multiplication
+* Division
+
+With multi-digit handling and seven-segment output.
+
+### Learning-Centric Design
+
+Ideal for students transitioning from high-level frameworks to **bare-metal embedded firmware development**.
 
 ---
 
-## Supported Microcontroller
-
-* **Microcontroller:** PIC16F877A
-* **Architecture:** 8-bit
-* **Ports Supported:** PORTA, PORTB, PORTC, PORTD, PORTE
-
----
-
-## File Structure
+# 📁 Project Structure
 
 ```
-gpios.h       -> Header file (macros, enums, definitions)
-gpios.c       -> GPIO implementation
-README.md     -> Documentation
+PIC16F877A/
+
+├── pic_library_code/                    # Header Files
+│   ├── gpio.h
+│
+├── gpoi_middle_code/                    # Source Files
+│   ├── gpio.c
+│   ├── seven_segment.c
+│   ├── keypad.c
+│   └── calculator.c
+│
+├── EXAMPLE CODES/
+│   ├── calculator_system.c
+│   └── counters.c
+│
+└── README.md
 ```
 
 ---
 
-## Pin Mapping Logic
+# 📌 Core API Reference
 
-The library converts physical pin numbers into:
+## GPIO Control
 
-| Pin Range | Port  |
-| --------- | ----- |
-| 2 – 7     | PORTA |
-| 8 – 10    | PORTE |
-| 15 – 18   | PORTC |
-| 19 – 22   | PORTD |
-| 23 – 26   | PORTC |
-| 27 – 30   | PORTD |
-| 33 – 40   | PORTB |
+```
+Function                                              Description
+------------------------------------------------------------------------------------------
+void GPIO_pinmode(int pin, pinmode_t mode)            - Sets a specific physical pin as INPUT or OUTPUT.
 
-Analog pins are configured as digital using:
+void GPIO_pinwrite(int pin, pinstate state)           - Writes HIGH (1) or LOW (0) to a specific pin.
 
-```c
+int pin_read(int pin)                                 - Returns the current digital state of a pin.
+
+void toggle(int pin)                                  - Toggles the logic state of a pin.
+
+void port_mode(port n, pinmode_t mode)                - Configures an entire port (PORTA–PORTE).
+
+void config_range_tris(uint8_t start,
+                       uint8_t end,
+                       port n,
+                       pinmode_t mode)                - Configures multiple TRIS bits at once.
+
+void config_range_ports(uint8_t start,
+                        uint8_t end,
+                        port n,
+                        pinstate state)               - Performs batch PORT operations.
+```
+
+---
+
+# 📌 Peripheral Functions
+
+## Seven Segment Display
+
+```
+Function                                              Description
+------------------------------------------------------------------------------------------
+void seven_segment_ANODE(char value, port n)          - Displays hexadecimal value (0–F) on Common Anode.
+
+void seven_segment_CATHODE(char value, port n)        - Displays hexadecimal value (0–F) on Common Cathode.
+```
+
+## Keypad
+
+```
+Function                                              Description
+------------------------------------------------------------------------------------------
+char keypad_scan_phone(void)                          - Scans  4×4 keypad and returns pressed key.
+```
+
+## Calculator Engine
+
+```
+Function                                              Description
+------------------------------------------------------------------------------------------
+void calculator_init(void)                            - Initializes calculator modules.
+
+void calculator_input(char key)                       - Processes keypad input for arithmetic logic.
+
+int calculator_get_result(void)                       - Returns computed result.
+```
+
+---
+
+# ⚠️ Critical Hardware Notes
+
+## ADCON1 Register
+
+PORTA and PORTE pins default to analog mode on reset.
+
+To use them as digital:
+
+```
 ADCON1 = 0x06;
 ```
 
 ---
 
-## Data Types Used
+## RA4 Open-Drain Behavior
 
-### Pin Mode
+RA4 can only drive LOW internally.
 
-```c
-typedef enum {
-    OUTPUT = 0,
-    INPUT = 1
-} pinmode_t;
-```
-
-### Pin State
-
-```c
-typedef enum {
-    LOW = 0,
-    HIGH = 1,
-    TOGGLE = 2
-} pinstate;
-```
+External pull-up resistor required (≈10kΩ) to generate HIGH output.
 
 ---
 
-# Function Documentation
+## PORTB Internal Pull-Ups
+
+Internal weak pull-ups can be enabled using:
+
+```
+OPTION_REG &= ~(1 << 7);
+```
+
+Useful for keypad interfacing without external resistors.
 
 ---
 
-## 1️⃣ GPIO_pinmode()
+# 🧠 Technical Reference
 
-### Description
+| Parameter       | Value              |
+| --------------- | ------------------ |
+| Microcontroller | PIC16F877A         |
+| Architecture    | 8-bit              |
+| Clock Frequency | 20 MHz Recommended |
+| Compiler        | XC8 (MPLAB X IDE)  |
+| Simulator       | Proteus            |
+| Debugger        | PICkit 3           |
 
-Configures a specific pin as INPUT or OUTPUT.
-
-### Syntax
-
-```c
-void GPIO_pinmode(int pin, pinmode_t mode);
-```
-
-### Example
-
-```c
-GPIO_pinmode(33, OUTPUT);   // Configure RB0 as output
-GPIO_pinmode(2, INPUT);     // Configure RA0 as input
-```
+Datasheet:
+https://ww1.microchip.com/downloads/en/devicedoc/39582b.pdf
 
 ---
 
-## 2️⃣ GPIO_pinwrite()
+# 🚀 Example Usage
 
-### Description
-
-Writes HIGH or LOW to a specified pin.
-
-### Syntax
+## GPIO Blink Example
 
 ```c
-void GPIO_pinwrite(int pin, pinstate state);
-```
+#include "gpio.h"
 
-### Example
+#define _XTAL_FREQ 20000000
 
-```c
-GPIO_pinwrite(33, HIGH);    // Set RB0 high
-GPIO_pinwrite(33, LOW);     // Set RB0 low
-```
-
----
-
-## 3️⃣ pin_read()
-
-### Description
-
-Reads the current logic level of a pin.
-
-### Syntax
-
-```c
-int pin_read(int pin);
-```
-
-### Returns
-
-* 1 → HIGH
-* 0 → LOW
-
-### Example
-
-```c
-int state = pin_read(2);
-```
-
----
-
-## 4️⃣ toggle()
-
-### Description
-
-Toggles the current state of a pin.
-
-### Syntax
-
-```c
-void toggle(int pin);
-```
-
-### Example
-
-```c
-toggle(33);   // Toggle RB0
-```
-
----
-
-## 5️⃣ config_range_tris()
-
-### Description
-
-Configures multiple bits of a TRIS register at once.
-
-### Syntax
-
-```c
-void config_range_tris(uint8_t start, uint8_t end, triss port, pinmode_t mode);
-```
-
-### Parameters
-
-* `start` → Lower bit (0–7)
-* `end` → Upper bit (exclusive)
-* `port` → Port index
-* `mode` → INPUT or OUTPUT
-
-### Example
-
-```c
-config_range_tris(0, 4, PORTB_INDEX, OUTPUT); 
-// Set RB0–RB3 as output
-```
-
----
-
-## 6️⃣ config_range_ports()
-
-### Description
-
-Performs batch operations on PORT bits.
-
-### Syntax
-
-```c
-void config_range_ports(int start, int end, port port_name, pinstate state);
-```
-
-### Operations Supported
-
-* LOW
-* HIGH
-* TOGGLE
-
-### Example
-
-```c
-config_range_ports(0, 8, PORTB_INDEX, HIGH); 
-// Set entire PORTB HIGH
-```
-
----
-
-# Internal Architecture
-
-The library uses pointer arrays:
-
-```c
-volatile unsigned char *port_s[]
-volatile unsigned char *tris[]
-```
-
-This allows dynamic register selection without large switch-case blocks.
-
----
-
-# Advantages
-
-✔ Clean abstraction over hardware registers
-✔ No direct register manipulation in user code
-✔ Reduced repetitive bit manipulation
-✔ Supports single pin and range operations
-✔ Easy integration into embedded projects
-
-
-
-# Example Usage
-
-```c
-#include "gpios.h"
-
-int main()
+void main()
 {
-    GPIO_pinmode(33, OUTPUT);  // RB0 output
-    
+    GPIO_pinmode(33, OUTPUT);
+
     while(1)
     {
         toggle(33);
@@ -271,3 +208,49 @@ int main()
 ```
 
 ---
+
+## Calculator Example
+
+```c
+#include "calculator.h"
+#include "keypad.h"
+
+void main()
+{
+    calculator_init();
+
+    while(1)
+    {
+        char key = keypad_scan_phone();
+
+        if(key)
+        {
+            calculator_input(key);
+        }
+    }
+}
+```
+
+---
+
+# ⚖️ License
+
+This project is open-source.
+
+Free to use for:
+
+* Educational purposes
+* Research
+* Embedded product prototyping
+* Commercial evaluation
+
+---
+
+# 👨‍💻 Author
+
+Embedded Systems Developer
+PIC Firmware & Driver Architecture
+
+---
+
+⭐ If this project helps you, consider giving it a star.
