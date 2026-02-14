@@ -1,4 +1,5 @@
 #define _XTAL_FREQ 20000000
+
 #pragma config FOSC = HS
 #pragma config WDTE = OFF
 #pragma config PWRTE = OFF
@@ -13,142 +14,230 @@
 #include <string.h>
 #include <ctype.h>
 
-unsigned int i=0;
-unsigned int j=0;
+
+/* =========================================================
+   GLOBAL VARIABLES
+   ========================================================= */
+
+unsigned int i = 0;
+unsigned int j = 0;
+
 int num = 0;
 int lastValue = 0;
-char op = '+';   
 int result = 0;
-unsigned char s1[95];
 
-void operations(unsigned char exp[])
+char op = '+';
+unsigned char expBuffer[95];
+
+
+/* =========================================================
+   7 SEGMENT HEX TABLE
+   ========================================================= */
+
+const unsigned char hex_digits[16] =
 {
-    unsigned char hex_digits[16] = {
-        0xC0,0xF9,0xA4,0xB0,
-        0x99,0x92,0x82,0xF8,
-        0x80,0x90,0x88,0x83,
-        0xC6,0xA1,0x86,0x8E
-    };
+    0xC0,0xF9,0xA4,0xB0,
+    0x99,0x92,0x82,0xF8,
+    0x80,0x90,0x88,0x83,
+    0xC6,0xA1,0x86,0x8E
+};
 
-    
-    
-     while(1)
+
+/* =========================================================
+   RESET CALCULATOR
+   ========================================================= */
+
+void resetCalculator()
+{
+    i = 0;
+    j = 0;
+    num = 0;
+    lastValue = 0;
+    result = 0;
+    op = '+';
+
+    for(int k = 0; k < 95; k++)
+        expBuffer[k] = 0;
+
+    PORTB = 0xC0;
+    PORTC = 0xC0;
+}
+
+
+/* =========================================================
+   DISPLAY RESULT ON 2 DIGIT 7 SEGMENT
+   ========================================================= */
+
+void displayResult(int value)
+{
+    TRISB = 0x00;
+    TRISC = 0x00;
+
+    PORTC = hex_digits[value % 10];
+    PORTB = hex_digits[(value / 10) % 10];
+}
+
+
+/* =========================================================
+   EXPRESSION EVALUATION (BODMAS BASIC)
+   ========================================================= */
+
+void evaluateExpression(unsigned char exp[])
+{
+    while(1)
     {
-        if(exp[i]>='0' && exp[i]<='9')
-            num = num*10 + (exp[i]-'0');
+        /* -------- NUMBER BUILD -------- */
+        if(exp[i] >= '0' && exp[i] <= '9')
+        {
+            num = num * 10 + (exp[i] - '0');
+        }
 
+        /* -------- OPERATOR DETECT -------- */
         if(exp[i]=='+' || exp[i]=='-' || exp[i]=='*' || exp[i]=='/' || exp[i]=='\0')
         {
             switch(op)
             {
-                case '+': result += lastValue; lastValue = num; break;
-                case '-': result += lastValue; lastValue = -num; break;
-                case '*': lastValue = lastValue * num; break;
-                case '/': if(num!=0) lastValue = lastValue / num; break;
+                case '+':
+                    result += lastValue;
+                    lastValue = num;
+                    break;
+
+                case '-':
+                    result += lastValue;
+                    lastValue = -num;
+                    break;
+
+                case '*':
+                    lastValue = lastValue * num;
+                    break;
+
+                case '/':
+                    if(num != 0)
+                        lastValue = lastValue / num;
+                    break;
             }
+
             op = exp[i];
             num = 0;
         }
 
-        if(exp[i]=='\0') break;
+        if(exp[i] == '\0')
+            break;
+
         i++;
     }
 
     result += lastValue;
 
-   
-    unsigned char hex[10]={0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x90};
-    TRISC =0; TRISB=0;
-    PORTC  = hex[result%10];
-    PORTB = hex[(result/10)%10];
-    
-   
+    displayResult(result);
 }
 
 
+/* =========================================================
+   PROCESS KEY INPUT
+   ========================================================= */
 
-
-void arithmatic(unsigned char a)
+void processKey(unsigned char key)
 {
-     unsigned char hex_digits[16] = {
-        0xC0,0xF9,0xA4,0xB0,
-        0x99,0x92,0x82,0xF8,
-        0x80,0x90,0x88,0x83,
-        0xC6,0xA1,0x86,0x8E
-    };
-     TRISC=0x00;
-     
-    if(a =='=')
+    TRISC = 0x00;
+
+    /* ---------- EQUAL ---------- */
+    if(key == '=')
     {
-        PORTC=0x86;
-        s1[j]='\0';
-        operations(s1);
-     //operations(s1);
+        PORTC = 0x86;        // '=' symbol
+        expBuffer[j] = '\0';
+        evaluateExpression(expBuffer);
     }
-    else if(a=='C')
-    { PORTC=0xC0;
-      PORTB=0xC0;
-      i=0,j=0,num = 0,lastValue = 0,result = 0,op='+';
-      for(int k = 0; k < 70; k++){
-      s1[k] = 0;}
-      return;
-    }  
+
+    /* ---------- CLEAR ---------- */
+    else if(key == 'C')
+    {
+        resetCalculator();
+        return;
+    }
+
+    /* ---------- NORMAL INPUT ---------- */
     else
     {
-     if(a>='0' && a<='9'){
-     PORTC=hex_digits[a-'0'];}
-     else if (a =='*'){
-     PORTC=0xAB;}
-     else if(a=='+'){
-     PORTC=0x8C;}
-     else if(a== '-'){
-     PORTC= 0x92;}
-     else if(a== '/'){
-     PORTC=0xA1;}
-     
-      s1[j]=a; 
-      j++;
+        if(key >= '0' && key <= '9')
+            PORTC = hex_digits[key - '0'];
+
+        else if(key == '*')
+            PORTC = 0xAB;
+
+        else if(key == '+')
+            PORTC = 0x8C;
+
+        else if(key == '-')
+            PORTC = 0x92;
+
+        else if(key == '/')
+            PORTC = 0xA1;
+
+        expBuffer[j++] = key;
     }
-    
 }
-void cal_boardmas(void)
-{    unsigned int bit1=-1,bit2=-1;
-     unsigned char keyboard[4][4] = 
-     {
+
+
+/* =========================================================
+   KEYPAD SCAN (4x4)
+   ========================================================= */
+
+void keypadTask()
+{
+    int col = -1;
+    int row = -1;
+
+    const unsigned char keypad[4][4] =
+    {
         {'7','8','9','/'},
         {'4','5','6','*'},
         {'1','2','3','-'},
         {'C','0','=','+'}
-     };
-     while(1)
-    { 
+    };
+
     while(1)
     {
-        TRISD = 0xF0;
-        PORTD = 0x0F;
-       
-            if((PORTD &(1<<4))!= 0){bit1=0;break;}    
-            else if((PORTD &(1<<5))!=0){bit1=1; break;}
-            else if((PORTD &(1<<6))!=0){  bit1=2; break;}
-            else if((PORTD &(1<<7))!=0){bit1=3; break;}
-            else{;}
+        /* -------- COLUMN DETECT -------- */
+        while(1)
+        {
+            TRISD = 0xF0;
+            PORTD = 0x0F;
+
+            if(PORTD & (1<<4)) { col = 0; break; }
+            if(PORTD & (1<<5)) { col = 1; break; }
+            if(PORTD & (1<<6)) { col = 2; break; }
+            if(PORTD & (1<<7)) { col = 3; break; }
+        }
+
+        /* -------- ROW DETECT -------- */
+        while(1)
+        {
+            TRISD = 0x0F;
+            PORTD = 0xF0;
+
+            if(PORTD & (1<<0)) { row = 0; break; }
+            if(PORTD & (1<<1)) { row = 1; break; }
+            if(PORTD & (1<<2)) { row = 2; break; }
+            if(PORTD & (1<<3)) { row = 3; break; }
+        }
+
+        processKey(keypad[row][col]);
+        __delay_ms(250);   // debounce
     }
-    while(1)
-    {
-         TRISD = 0x0F;
-         PORTD = 0xF0;
-            if((PORTD &(1<<0))!= 0){bit2=0; break;}         
-            else if((PORTD &(1<<1))!=0){bit2=1; break;}
-            else if((PORTD &(1<<2))!=0){bit2=2; break;}
-            else if((PORTD &(1<<3))!=0){bit2=3; break;}
-            else{;}  
-    }
-  arithmatic(keyboard[bit2][bit1]); 
 }
-void main(void)  
+
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+void main(void)
 {
+    resetCalculator();
+
     while(1)
     {
-        cal_boardmas();
+        keypadTask();
     }
 }
