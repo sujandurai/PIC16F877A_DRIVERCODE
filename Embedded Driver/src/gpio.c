@@ -1,283 +1,236 @@
-#include "lcd.h"
+#include "gpios.h"
+
+/* =========================================================
+   GLOBAL POINTER ARRAYS
+   ========================================================= */
+
+volatile unsigned char *port_s[] = { &PORTA, &PORTB, &PORTC, &PORTD, &PORTE };
+volatile unsigned char *tris[]   = { &TRISA, &TRISB, &TRISC, &TRISD, &TRISE };
 
 
-volatile unsigned char *port_s[] = { &PORTA,&PORTB,&PORTC,&PORTD,&PORTE };
-volatile unsigned char *tris[]   = { &TRISA,&TRISB,&TRISC,&TRISD,&TRISE };
+/* =========================================================
+   GPIO PIN MODE
+   =========================================================
+   Configures a pin as INPUT or OUTPUT
+   =========================================================
+   Example:
+       GPIO_pinmode(33, OUTPUT);   // RB0 output
+       GPIO_pinmode(2, INPUT);     // RA0 input
+*/
 
-volatile unsigned int *directions[] = { SHIFT_DISPLAY_LEFT , SHIFT_DISPLAY_RIGHT };
-
-volatile unsigned char positions[2][16] =
+void GPIO_pinmode(int pin, pinmode_t mode)
 {
+    if (pin >= 33 && pin <= 40)
     {
-        0x80,0x81,0x82,0x83,0x84,0x85,0x86,0x87,
-        0x88,0x89,0x8A,0x8B,0x8C,0x8D,0x8E,0x8F
-    },
-    {
-        0xC0,0xC1,0xC2,0xC3,0xC4,0xC5,0xC6,0xC7,
-        0xC8,0xC9,0xCA,0xCB,0xCC,0xCD,0xCE,0xCF
+        if (mode == OUTPUT) SETOUT(pin - 33, TRISB);
+        else SETIN(pin - 33, TRISB);
     }
-};
 
-volatile unsigned int display_settings[] =
-{
-    DISPLAY_OFF,
-    DISPLAY_ON_CURSOR_OFF,
-    DISPLAY_ON_BLINK,
-    DISPLAY_ON_CURSOR,
-    DISPLAY_ON_CUR_BLINK
-};
-
-#define RS PORTCbits.RC0
-#define RW PORTCbits.RC1
-#define EN PORTCbits.RC2
-
-#define delay for(int j=0;j<1000;j++)
-
-unsigned int q = 1;
-uint8_t d = 0;
-
-
-/* ================= BASIC ================= */
-
-void lcd_select_port(port m)
-{
-    q = m;
-}
-
-void lcd_clear(port n)
-{
-    lcd_cmd(CLEAR_DISPLAY,n);
-    lcd_cmd(CURSOR_RETURN,n);
-}
-
-void lcd_set_display(uint8_t disptype)
-{
-    d = disptype;
-}
-
-void lcd_cmd(unsigned char a, port n)
-{
-    unsigned char *t,*p;
-
-    t = tris[n];
-    p = port_s[n];
-
-    *t = 0x00;
-    *p = a;
-
-    RS = 0;
-    RW = 0;
-    EN = 1;
-    delay;
-    EN = 0;
-}
-
-void lcd_data(unsigned char a, port n)
-{
-    unsigned char *t,*p;
-
-    t = tris[n];
-    p = port_s[n];
-
-    *t = 0x00;
-    *p = a;
-
-    RS = 1;
-    RW = 0;
-    EN = 1;
-    delay;
-    EN = 0;
-}
-
-void lcd_print(unsigned char *s, port n)
-{
-    while(*s)
+    else if (pin >= 2 && pin <= 7)
     {
-        lcd_data(*s++, n);
+        ADCON1 = 0x06;
+
+        if (mode == OUTPUT) SETOUT(pin - 2, TRISA);
+        else SETIN(pin - 2, TRISA);
+    }
+
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
+    {
+        if (pin < 19) pin -= 15;
+        else pin -= 19;
+
+        if (mode == OUTPUT) SETOUT(pin, TRISC);
+        else SETIN(pin, TRISC);
+    }
+
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23) pin -= 19;
+        else pin -= 23;
+
+        if (mode == OUTPUT) SETOUT(pin, TRISD);
+        else SETIN(pin, TRISD);
+    }
+
+    else if ((pin > 7) && (pin < 11))
+    {
+        ADCON1 = 0x06;
+
+        if (mode == OUTPUT) SETOUT(pin - 8, TRISE);
+        else SETIN(pin - 8, TRISE);
     }
 }
 
 
-/* ================= DISPLAY FUNCTIONS ================= */
+/* =========================================================
+   GPIO WRITE
+   =========================================================
+   Writes HIGH or LOW to a pin
+   =========================================================
+   Example:
+       GPIO_pinwrite(33, HIGH);   // RB0 HIGH
+       GPIO_pinwrite(33, LOW);    // RB0 LOW
+*/
 
-void string_disp_shift_2line_5X10(unsigned char sentence[], direction m)
+void GPIO_pinwrite(int pin, pinstate state)
 {
-    TRISCbits.RC0=0;
-    TRISCbits.RC1=0;
-    TRISCbits.RC2=0;
-
-    uint8_t n=q;
-
-    lcd_cmd(SET_DDRAM_ADDRESS2,n);
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,n);
-    lcd_cmd(display_settings[d],n);
-    lcd_cmd(directions[m],n);
-    lcd_cmd(0xC0,n);
-
-    lcd_print(sentence,n);
-}
-
-void string_disp_shift_2line_5X7(unsigned char sentence[], port n, direction m)
-{
-    TRISCbits.RC0=0;
-    TRISCbits.RC1=0;
-    TRISCbits.RC2=0;
-
-    lcd_cmd(SET_DDRAM_ADDRESS1,n);
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,n);
-    lcd_cmd(display_settings[d],n);
-    lcd_cmd(directions[m],n);
-    lcd_cmd(0xC4,n);
-
-    lcd_print(sentence,n);
-}
-
-
-/* ================= SCROLL ================= */
-
-void lcd_scrollText_2Line_5x10(unsigned char sentence[], port n, direction m, uint8_t row, uint8_t col)
-{
-    TRISCbits.RC0=0;
-    TRISCbits.RC1=0;
-    TRISCbits.RC2=0;
-
-    lcd_clear(n);
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,n);
-    lcd_cmd(display_settings[d],n);
-    lcd_cmd(positions[row][col],n);
-    lcd_print(sentence,n);
-
-    while(1)
+    if (pin >= 33 && pin <= 40)
     {
-        if(m==RIGHT)
-            lcd_cmd(0x1C,n);
+        if (state == LOW) SETLOW(pin - 33, PORTB);
+        else SETHIGH(pin - 33, PORTB);
+    }
+
+    else if (pin >= 2 && pin <= 7)
+    {
+        if (state == LOW) SETLOW(pin - 2, PORTA);
+        else SETHIGH(pin - 2, PORTA);
+    }
+
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
+    {
+        if (pin < 19) pin -= 15;
+        else pin -= 19;
+
+        if (state == LOW) SETLOW(pin, PORTC);
+        else SETHIGH(pin, PORTC);
+    }
+
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23) pin -= 19;
+        else pin -= 23;
+
+        if (state == LOW) SETLOW(pin, PORTD);
+        else SETHIGH(pin, PORTD);
+    }
+
+    else if ((pin > 7) && (pin < 11))
+    {
+        if (state == LOW) SETLOW(pin - 8, PORTE);
+        else SETHIGH(pin - 8, PORTE);
+    }
+}
+
+
+/* =========================================================
+   GPIO READ
+   =========================================================
+   Reads the digital value of a pin
+   =========================================================
+   Example:
+       int val = pin_read(2);   // Read RA0
+*/
+
+int pin_read(int pin)
+{
+    if (pin >= 33 && pin <= 40)
+        return (PORTB & (1 << (pin - 33))) ? 1 : 0;
+
+    else if (pin >= 2 && pin <= 7)
+        return (PORTA & (1 << (pin - 2))) ? 1 : 0;
+
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
+    {
+        if (pin < 19) pin -= 15;
+        else pin -= 19;
+        return (PORTC & (1 << pin)) ? 1 : 0;
+    }
+
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23) pin -= 19;
+        else pin -= 23;
+        return (PORTD & (1 << pin)) ? 1 : 0;
+    }
+
+    else if ((pin > 7) && (pin < 11))
+        return (PORTE & (1 << (pin - 8))) ? 1 : 0;
+
+    return 0;
+}
+
+
+/* =========================================================
+   TOGGLE PIN
+   =========================================================
+   Example:
+       toggle(33);   // Toggle RB0
+*/
+
+void toggle(int pin)
+{
+    if (pin >= 33 && pin <= 40)
+        SETTOGGLE(pin - 33, PORTB);
+
+    else if (pin >= 2 && pin <= 7)
+        SETTOGGLE(pin - 2, PORTA);
+
+    else if (((pin > 14) && (pin < 19)) || ((pin > 22) && (pin < 27)))
+    {
+        if (pin < 19) pin -= 15;
+        else pin -= 19;
+        SETTOGGLE(pin, PORTC);
+    }
+
+    else if (((pin > 18) && (pin < 23)) || ((pin > 26) && (pin < 31)))
+    {
+        if (pin < 23) pin -= 19;
+        else pin -= 23;
+        SETTOGGLE(pin, PORTD);
+    }
+
+    else if ((pin > 7) && (pin < 11))
+        SETTOGGLE(pin - 8, PORTE);
+}
+
+
+/* =========================================================
+   CONFIG RANGE TRIS
+   =========================================================
+   Configure multiple pins as INPUT/OUTPUT
+   =========================================================
+   Example:
+       config_range_tris(0, 8, TRIS_B, OUTPUT);  // RB0–RB7 output
+*/
+
+void config_range_tris(uint8_t low, uint8_t high, triss t, pinmode_t mode)
+{
+    volatile unsigned char *reg = tris[t];
+
+    for (uint8_t i = low; i < high; i++)
+    {
+        if (mode == OUTPUT)
+            *reg &= ~(1 << i);
         else
-            lcd_cmd(0x18,n);
-
-        delay;
-    }
-}
-
-void lcd_scrollText_2Line_5x7(unsigned char sentence[], port n, direction m, uint8_t row, uint8_t col)
-{
-    lcd_scrollText_2Line_5x10(sentence,n,m,row,col);
-}
-
-
-/* ================= OTHER EFFECTS ================= */
-
-void lcd_displayPaged_2Line(unsigned char sentence[], port n)
-{
-    TRISCbits.RC0=0;
-    TRISCbits.RC1=0;
-    TRISCbits.RC2=0;
-
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,n);
-    lcd_cmd(display_settings[d],n);
-
-    int i=0;
-
-    while(sentence[i] != '\0')
-    {
-        lcd_cmd(0x01,n);
-
-        lcd_cmd(SET_DDRAM_ADDRESS1,n);
-        for(int col=0; col<16; col++)
-            if(sentence[i] != '\0')
-                lcd_data(sentence[i++], n);
-
-        lcd_cmd(SET_DDRAM_ADDRESS2,n);
-        for(int col=0; col<16; col++)
-            if(sentence[i] != '\0')
-                lcd_data(sentence[i++], n);
-
-        delay;
-    }
-
-    lcd_clear(n);
-}
-
-void lcd_typewriterEffect(unsigned char sentence[], uint8_t row, uint8_t col)
-{
-    TRISCbits.RC0=0;
-    TRISCbits.RC1=0;
-    TRISCbits.RC2=0;
-
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,q);
-    lcd_cmd(display_settings[d],q);
-
-    for(int i=0; sentence[i]!=0; i++)
-    {
-        lcd_cmd(positions[row][col],q);
-        delay;
-        lcd_data(sentence[i],q);
-        delay;
-        lcd_cmd(CLEAR_DISPLAY,q);
+            *reg |= (1 << i);
     }
 }
 
 
-/* ================= 2 STRING ================= */
+/* =========================================================
+   CONFIG RANGE PORT
+   =========================================================
+   Write HIGH/LOW to multiple pins
+   =========================================================
+   Example:
+       config_range_ports(0, 4, PORT_D, HIGH);  // RD0–RD3 HIGH
+*/
 
-void lcd_scroll_2string(uint8_t string1[], uint8_t string2[], direction m)
+void config_range_ports(int low, int high, port p, pinstate state)
 {
-    int n=q;
+    volatile unsigned char *reg = port_s[p];
 
-    lcd_clear(n);
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,n);
-    lcd_cmd(display_settings[d],n);
+    if (high > 8) high = 8;
 
-    lcd_cmd(0x80,n);
-    lcd_print(string1,n);
-
-    lcd_cmd(0xC0,n);
-    lcd_print(string2,n);
-
-    while(1)
+    for (int i = low; i < high; i++)
     {
-        if(m==RIGHT)
-            lcd_cmd(0x1C,n);
-        else
-            lcd_cmd(0x18,n);
+        if (state == LOW)
+            *reg &= ~(1 << i);
 
-        delay;
-    }
-}
+        else if (state == HIGH)
+            *reg |= (1 << i);
 
-void lcd_noscroll_2line(unsigned char sentence[], unsigned char sentence1[])
-{
-    int n=q;
-
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,n);
-    lcd_cmd(0x06,n);
-    lcd_cmd(display_settings[d],n);
-    lcd_clear(n);
-
-    lcd_cmd(0x80,n);
-    lcd_print(sentence,n);
-
-    lcd_cmd(0xC0,n);
-    lcd_print(sentence1,n);
-}
-
-
-void lcd_sliderTwoLines(uint8_t string1[], uint8_t string2[], direction m)
-{
-    int n=q;
-
-    lcd_clear(n);
-    lcd_cmd(DISPLAY_8BIT_2LINE_1FONT,n);
-    lcd_cmd(display_settings[d],n);
-
-    lcd_cmd(0x80,n);
-    lcd_print(string1,n);
-
-    lcd_cmd(0xC0,n);
-    lcd_print(string2,n);
-
-    while(1)
-    {
-        for(int i=0;i<16;i++) lcd_cmd(0x1C,n);
-        for(int i=0;i<16;i++) lcd_cmd(0x18,n);
+        else if (state == TOGGLE)
+            *reg ^= (1 << i);
     }
 }
