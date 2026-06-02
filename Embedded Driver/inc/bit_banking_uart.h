@@ -1,4 +1,4 @@
-#include"timer0.h"
+#include"TIMER0.H"
 
 #ifndef UART_H
 
@@ -12,31 +12,41 @@ void string_transmit(uint8_t *s);
 
 void uart_init()
 {
-    TRISBbits.RB1=0;
-    PORTBbits.RB1=1;
+    TRISCbits.RC1=0;
+    PORTCbits.RC1=1;
+    TRISCbits.RC2=1;
     
 }
 
 void transmit(uint8_t data)
 {
-       delay_ms(0.103);
-      PORTBbits.RB1=0;
-      delay_ms(0.103);
-      unsigned char n=0;
-    
-     for(uint8_t i=0;i<8;i++)
-    { 
-        if(data & (1<<i)){
-            PORTBbits.RB1=1;   } 
-        else
-            {PORTBbits.RB1=0;}
-        
-      delay_ms(0.103);
-       
-    }
-    PORTBbits.RB1=1;
-    delay_ms(0.103);
    
+      delay_104us();
+    
+      PORTCbits.RC1 = 0;      // Start bit
+   
+      delay_104us();
+     
+
+    for(uint8_t i = 0; i < 8; i++)
+    {
+        if(data & (1 << i))
+            
+            PORTCbits.RC1 = 1;
+        else
+            PORTCbits.RC1 = 0;
+
+       
+        delay_104us();
+        
+    }
+   
+    PORTCbits.RC1 = 1;      // Stop bit
+    
+       delay_ms(0.104); 
+     
+    
+    
 }
 
 void string_transmit(uint8_t *s)
@@ -46,3 +56,31 @@ void string_transmit(uint8_t *s)
         transmit(*s++);
     }
 }
+
+void receiver(void)
+{
+        uint8_t count=0;
+        uint8_t data=0X00;
+        TRISCbits.RC2=1;
+        
+        while(PORTCbits.RC2);
+       delay_104us();
+        
+        while(count<8)
+        {
+            if(PORTCbits.RC2==1)
+                data|=(1<<count);
+            
+              count++;
+              
+               delay_104us();
+        }
+        
+           delay_ms(0.104);
+           transmit(data);
+           delay_ms(0.104); 
+          
+}
+
+
+
