@@ -1,156 +1,208 @@
+If this repository is going to be one of your **flagship GitHub projects**, I would position it as a **PIC16F877A Embedded Driver Framework** and include UART and I²C Bit-Banging as additional modules.
+
 # PIC16F877A Embedded Driver Framework
 
-### GPIO • Display • Keypad • Calculator Engine (8-Bit)
+### GPIO • UART • I²C • Display • Keypad • Calculator Engine
 
 ⭐ A modular, register-level embedded firmware framework for the **Microchip PIC16F877A** microcontroller.
 
-This project provides a clean Hardware Abstraction Layer (HAL) for digital I/O, display control, keypad scanning, and an embedded calculator system while maintaining direct access to hardware registers for deterministic performance.
+This project provides reusable peripheral drivers and hardware abstraction layers (HAL) for developing embedded applications using direct register manipulation while maintaining deterministic real-time behavior.
 
 Designed for:
 
-* Embedded Systems Students
-* Firmware Engineers
-* Academic Projects
-* Bare-Metal Development
+* Embedded Systems Engineers
+* Firmware Developers
+* Bare-Metal Programmers
+* Academic Research
 * Hardware Prototyping
 
 ---
 
-# ✨ Key Features
+# 🚀 Features
 
-### ✔ Register-Level GPIO Control
+### 🔹 GPIO Driver
 
-Direct manipulation of **TRISx** and **PORTx** registers using optimized pointer abstraction.
+* Register-level pin configuration
+* Input / Output management
+* Port-wide operations
+* Pin toggling support
 
-### ✔ Full Port Coverage
+### 🔹 UART Driver
 
-Supports all microcontroller ports:
+* UART initialization
+* Character transmission
+* String transmission
+* Character reception
+* Serial debugging support
 
-PORTA • PORTB • PORTC • PORTD • PORTE
+### 🔹 I²C Bit-Banging Driver
 
-### ✔ Automatic Analog Disable
+* Software-based I²C implementation
+* Start / Stop generation
+* ACK / NACK handling
+* Byte transmit and receive
+* Sensor interfacing support
 
-Configures analog pins as digital using **ADCON1** for reliable I/O behavior.
+### 🔹 Seven Segment Driver
 
-### ✔ Seven-Segment Display Driver
+* Common Anode support
+* Common Cathode support
+* Hexadecimal display support (0–F)
 
-Supports:
+### 🔹 Matrix Keypad Driver
 
-* Common Anode
-* Common Cathode
-* Hexadecimal Characters (0–F)
+* 4×3 keypad support
+* 4×4 keypad support
+* Debounced key detection
 
-### ✔ Matrix Keypad Interface
+### 🔹 Calculator Engine
 
-Compatible with **4×3** and **4×4** keypad layouts for calculator and user interfaces.
+* Addition
+* Subtraction
+* Multiplication
+* Division
+* Multi-digit processing
 
-### ✔ Embedded Calculator Engine
+### 🔹 Lightweight Architecture
 
-Implements arithmetic operations:
-
-Addition • Subtraction • Multiplication • Division
-
-With multi-digit processing and seven-segment output.
-
-### ✔ Lightweight & Deterministic
-
-No unnecessary abstraction layers — optimized for predictable execution timing.
+* No RTOS required
+* Minimal RAM usage
+* Deterministic execution
+* Scalable module structure
 
 ---
 
 # 📂 Repository Structure
 
-```
-PIC16F877A/
+```text
+PIC16F877A-Driver-Framework/
 
-├── pic_library_code/                        # Header Files
+├── include/
 │   ├── gpio.h
-├── gpio_middle_code/                        # Source Files
+│   ├── uart.h
+│   ├── i2c_bb.h
+│   ├── keypad.h
+│   ├── seven_segment.h
+│   └── calculator.h
+│
+├── src/
 │   ├── gpio.c
-│   ├── seven_segment.c
+│   ├── uart.c
+│   ├── i2c_bb.c
 │   ├── keypad.c
+│   ├── seven_segment.c
 │   └── calculator.c
 │
-├── EXAMPLE CODES/              # Application Examples
-│   ├── calculator_system.c
-│   └── counters.c
+├── examples/
+│   ├── blink.c
+│   ├── uart_terminal.c
+│   ├── i2c_sensor.c
+│   ├── keypad_demo.c
+│   └── calculator_system.c
+│
+├── docs/
+│   └── architecture.md
 │
 └── README.md
 ```
 
 ---
 
-# 📌 Core API Reference
+# 🛠 Peripheral Modules
 
-## GPIO Control Interface
+## GPIO Driver
 
-```
-Function                                              Description
-------------------------------------------------------------------------------------------------
-void GPIO_pinmode(int pin, pinmode_t mode)            Configure a physical pin as INPUT or OUTPUT.
-
-void GPIO_pinwrite(int pin, pinstate state)           Write HIGH or LOW logic level to a pin.
-
-int  pin_read(int pin)                                Read the current digital state of a pin.
-
-void toggle(int pin)                                  Toggle the logic state of a pin.
-
-void port_mode(port port_name, pinmode_t mode)        Configure direction for an entire port.
-
-void config_range_tris(uint8_t start,
-                       uint8_t end,
-                       port port_name,
-                       pinmode_t mode)                Configure multiple TRIS bits simultaneously.
-
-void config_range_ports(uint8_t start,
-                        uint8_t end,
-                        port port_name,
-                        pinstate state)               Perform batch operations on PORT bits.
+```c
+void GPIO_pinmode(int pin, pinmode_t mode);
+void GPIO_pinwrite(int pin, pinstate state);
+int  pin_read(int pin);
+void toggle(int pin);
+void port_mode(port port_name, pinmode_t mode);
 ```
 
 ---
 
-# 📌 Peripheral Interfaces
+## UART Driver
 
-## Seven-Segment Display
+```c
+void UART_Init(unsigned long baudrate);
 
+void UART_WriteChar(char data);
+
+void UART_WriteString(const char *str);
+
+char UART_ReadChar(void);
+
+uint8_t UART_DataAvailable(void);
 ```
-Function                                              Description
-------------------------------------------------------------------------------------------------
-void seven_segment_ANODE(char value, port port_name)  Display hexadecimal value (0–F) on Common Anode display.
 
-void seven_segment_CATHODE(char value, port port_name)Display hexadecimal value (0–F) on Common Cathode display.
+### Supported Baud Rates
+
+* 9600
+* 19200
+* 38400
+* 57600
+* 115200
+
+---
+
+## I²C Bit-Banging Driver
+
+```c
+void I2C_Init(void);
+
+void I2C_Start(void);
+
+void I2C_Stop(void);
+
+void I2C_Write(uint8_t data);
+
+uint8_t I2C_Read(uint8_t ack);
 ```
+
+### Compatible Devices
+
+* EEPROM
+* RTC
+* OLED Displays
+* Environmental Sensors
+* IMU Modules
+
+---
+
+## Seven Segment Driver
+
+```c
+void seven_segment_ANODE(char value, port port_name);
+
+void seven_segment_CATHODE(char value, port port_name);
+```
+
+---
 
 ## Keypad Driver
 
-```
-Function                                              Description
-------------------------------------------------------------------------------------------------
-char keypad_scan_phone(void)                          Scan keypad matrix and return pressed key.
-```
-
-## Calculator Engine
-
-```
-Function                                              Description
-------------------------------------------------------------------------------------------------
-void calculator_init(void)                            Initialize calculator modules and display.
-
-void calculator_input(char key)                       Process keypad input and arithmetic logic.
-
-int  calculator_get_result(void)                      Retrieve computed calculation result.
+```c
+char keypad_scan_phone(void);
 ```
 
 ---
 
-# ⚠️ Hardware Considerations
+## Calculator Engine
 
-## Analog Configuration (PORTA / PORTE)
+```c
+void calculator_init(void);
 
-Pins default to analog mode after reset.
+void calculator_input(char key);
 
-Configure as digital:
+int calculator_get_result(void);
+```
+
+---
+
+# ⚙ Hardware Configuration
+
+## Configure Analog Pins as Digital
 
 ```c
 ADCON1 = 0x06;
@@ -158,19 +210,7 @@ ADCON1 = 0x06;
 
 ---
 
-## RA4 Output Characteristics
-
-RA4 operates as an **open-drain output**.
-
-Requirement:
-
-External pull-up resistor (~10 kΩ) for HIGH level output.
-
----
-
-## PORTB Internal Pull-Ups
-
-Enable internal pull-ups when using keypad:
+## Enable PORTB Pull-Ups
 
 ```c
 OPTION_REG &= ~(1 << 7);
@@ -178,102 +218,136 @@ OPTION_REG &= ~(1 << 7);
 
 ---
 
-# 🧠 Technical Specifications
+## RA4 Open Drain Behavior
 
-| Parameter       | Value              |
-| --------------- | ------------------ |
-| Microcontroller | PIC16F877A         |
-| Architecture    | 8-bit              |
-| Clock Frequency | 20 MHz Recommended |
-| Compiler        | XC8 (MPLAB X IDE)  |
-| Simulator       | Proteus            |
-| Debugger        | PICkit 3           |
+RA4 requires an external pull-up resistor for proper HIGH-level operation.
 
-Datasheet:
-https://ww1.microchip.com/downloads/en/devicedoc/39582b.pdf
+Recommended:
+
+```text
+10kΩ Pull-Up Resistor
+```
 
 ---
 
-# 🚀 Example Applications
+# 📊 Technical Specifications
 
-## GPIO Blink Example
+| Parameter       | Value        |
+| --------------- | ------------ |
+| MCU             | PIC16F877A   |
+| Architecture    | 8-bit        |
+| Flash Memory    | 8K Words     |
+| RAM             | 368 Bytes    |
+| EEPROM          | 256 Bytes    |
+| Clock Frequency | Up to 20 MHz |
+| Compiler        | XC8          |
+| IDE             | MPLAB X      |
+| Debugger        | PICkit 3     |
+| Simulator       | Proteus      |
+
+---
+
+# 💼 Example Applications
+
+### LED Blink
 
 ```c
-#include "gpio.h"
+GPIO_pinmode(33, OUTPUT);
 
-#define _XTAL_FREQ 20000000
-
-void main(void)
+while(1)
 {
-    GPIO_pinmode(33, OUTPUT);
+    toggle(33);
+    __delay_ms(500);
+}
+```
 
-    while(1)
+### UART Serial Terminal
+
+```c
+UART_Init(9600);
+
+while(1)
+{
+    UART_WriteString("PIC16F877A UART Driver\r\n");
+    __delay_ms(1000);
+}
+```
+
+### I²C Sensor Interface
+
+```c
+I2C_Start();
+
+I2C_Write(0xD0);
+
+I2C_Write(0x00);
+
+I2C_Stop();
+```
+
+### Calculator System
+
+```c
+calculator_init();
+
+while(1)
+{
+    char key = keypad_scan_phone();
+
+    if(key)
     {
-        toggle(33);
-        __delay_ms(500);
+        calculator_input(key);
     }
 }
 ```
 
 ---
 
-## Calculator System Example
-
-```c
-#include"gpio.h"
-
-void main(void)
-{
-    calculator_init();
-
-    while(1)
-    {
-        char key = keypad_scan_phone();
-
-        if(key)
-        {
-            calculator_input(key);
-        }
-    }
-}
-```
-
----
-
-# 🏗 Internal Architecture
+# 🏗 Architecture Overview
 
 The framework uses pointer-based register abstraction:
 
-```
+```c
 volatile unsigned char *port_s[];
 volatile unsigned char *tris[];
 ```
 
-Advantages:
+### Benefits
 
-✔ Eliminates large switch-case blocks
-✔ Faster execution
-✔ Cleaner scalable design
 ✔ Reduced code duplication
+
+✔ Faster register access
+
+✔ Modular architecture
+
+✔ Easy scalability
+
+✔ Clean driver separation
+
+✔ Improved maintainability
 
 ---
 
-# 📜 License
+# 📚 Learning Outcomes
 
-This project is open-source and free for:
+Through this project:
 
-* Education
-* Research
-* Embedded prototyping
-* Commercial evaluation
+* Register-Level Programming
+* Embedded Driver Development
+* UART Communication
+* I²C Protocol Implementation
+* Hardware Abstraction Layer Design
+* Embedded Software Architecture
+* Bare-Metal Firmware Development
 
 ---
 
 # 👨‍💻 Author
 
-Embedded Systems Developer
-PIC Firmware Architecture & Driver Design
+### Sujan Duraisamy
+
+Embedded Systems • Firmware Development • Edge AI
+
+Passionate about building efficient embedded systems using low-level firmware, hardware-software co-design, and real-time architectures.
 
 ---
-
-⭐ If you find this project useful, consider giving it a star.
