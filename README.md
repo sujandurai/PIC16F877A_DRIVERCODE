@@ -1,4 +1,3 @@
-If this repository is going to be one of your **flagship GitHub projects**, I would position it as a **PIC16F877A Embedded Driver Framework** and include UART and I²C Bit-Banging as additional modules.
 
 # PIC16F877A Embedded Driver Framework
 
