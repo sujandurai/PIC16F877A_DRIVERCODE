@@ -138,11 +138,6 @@ uint8_t UART_DataAvailable(void);
 ### Supported Baud Rates
 
 * 9600
-* 19200
-* 38400
-* 57600
-* 115200
-
 ---
 
 ## I²C Bit-Banging Driver
